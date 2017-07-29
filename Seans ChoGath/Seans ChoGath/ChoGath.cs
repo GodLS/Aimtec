@@ -1,6 +1,8 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Aimtec;
 using Aimtec.SDK.Damage;
+using Aimtec.SDK.Events;
 using Aimtec.SDK.Extensions;
 using Aimtec.SDK.Menu.Components;
 using Aimtec.SDK.Orbwalking;
@@ -462,6 +464,18 @@ namespace Seans_ChoGath
                     break;
                 default: break;
             }
+        }
+
+        public static void HeroDashed(object sender, Dash.DashArgs e)
+        {
+            if (e.IsBlink || !e.Unit.IsEnemy || !e.Unit.IsValidTarget(Spells.Q.Range))
+                return;
+
+            if (Spells.Q.Ready)
+            {
+                
+            }
+
         }
 
         public static void OnPresent()

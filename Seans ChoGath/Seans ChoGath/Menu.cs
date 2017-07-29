@@ -114,7 +114,9 @@ namespace Seans_ChoGath
             miscMenu.Add(miscRWhitelistMenu);
             foreach (var hero in GameObjects.EnemyHeroes)
                 miscRWhitelistMenu.Add(new MenuBool(hero.ChampionName, hero.ChampionName));
-
+            //var miscGapcloseMenu = new Aimtec.SDK.Menu.Menu("misc.gapclose", "Gapclosers");
+            //foreach (var hero in GameObjects.EnemyHeroes.Where(e=>e.SpellBook.Spells.Contains())
+            //    miscGapcloseMenu.Add(new MenuBool(hero.ChampionName, hero.ChampionName));
 
 
             var laneclearMenu = new Aimtec.SDK.Menu.Menu("laneclear", "Laneclear");
@@ -122,8 +124,8 @@ namespace Seans_ChoGath
             laneclearMenu.Add(new MenuSlider("laneclear.mana", "Minimum mana percent", 40, 0, 100));
             laneclearMenu.Add(new MenuBool("laneclear.q", "Use Q"));
             laneclearMenu.Add(new MenuSlider("laneclear.q.min", ">> min minions", 3, 1, 6));
-            laneclearMenu.Add(new MenuBool("laneclear.e", "Use E"));
-            laneclearMenu.Add(new MenuSlider("laneclear.e.min", ">> min minions", 3, 1, 6));
+            laneclearMenu.Add(new MenuBool("laneclear.w", "Use E"));
+            laneclearMenu.Add(new MenuSlider("laneclear.w.min", ">> min minions", 3, 1, 6));
 
 
 

@@ -20,6 +20,9 @@ namespace Seans_ChoGath
 
         private static void GameStart()
         {
+            if (ObjectManager.GetLocalPlayer().ChampionName != "Chogath")
+                return;
+
             Menu.Create();
             Spells.Create();
 
@@ -27,8 +30,10 @@ namespace Seans_ChoGath
             Obj_AI_Base.OnLevelUp += ChoGath.OnLevelUp;
             Orbwalker.Implementation.PostAttack += ChoGath.PostAttack;
             Render.OnPresent += ChoGath.OnPresent;
-
+            Dash.HeroDashed += ChoGath.HeroDashed;
         }
+
+
 
         private static void OnUpdate()
         {
