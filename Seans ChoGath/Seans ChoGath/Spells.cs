@@ -17,7 +17,7 @@ namespace Seans_ChoGath
         public static void Create()
         {
             Q = new Spell(SpellSlot.Q, 950f);
-            W = new Spell(SpellSlot.W, 750f);
+            W = new Spell(SpellSlot.W, 700f);
             E = new Spell(SpellSlot.E, ObjectManager.GetLocalPlayer().AttackRange + 50f);
             R = new Spell(SpellSlot.R, 175f);
 
