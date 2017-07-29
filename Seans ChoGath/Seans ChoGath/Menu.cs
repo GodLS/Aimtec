@@ -124,7 +124,7 @@ namespace Seans_ChoGath
             laneclearMenu.Add(new MenuSlider("laneclear.mana", "Minimum mana percent", 40, 0, 100));
             laneclearMenu.Add(new MenuBool("laneclear.q", "Use Q"));
             laneclearMenu.Add(new MenuSlider("laneclear.q.min", ">> min minions", 3, 1, 6));
-            laneclearMenu.Add(new MenuBool("laneclear.w", "Use E"));
+            laneclearMenu.Add(new MenuBool("laneclear.w", "Use W"));
             laneclearMenu.Add(new MenuSlider("laneclear.w.min", ">> min minions", 3, 1, 6));
 
 
