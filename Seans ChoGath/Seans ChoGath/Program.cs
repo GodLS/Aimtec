@@ -9,11 +9,10 @@ using Aimtec.SDK.Extensions;
 using Aimtec.SDK.Menu;
 using Aimtec.SDK.Orbwalking;
 
-namespace SeansChoGath
+namespace Seans_ChoGath
 {
     class Program
     {
-
         static void Main(string[] args)
         {
             GameEvents.GameStart += GameStart;
@@ -26,8 +25,9 @@ namespace SeansChoGath
 
             Game.OnUpdate += OnUpdate;
             Obj_AI_Base.OnLevelUp += ChoGath.OnLevelUp;
-            Obj_AI_Base.OnProcessSpellCast += ChoGath.OnProcessSpellCast;
             Orbwalker.Implementation.PostAttack += ChoGath.PostAttack;
+            Render.OnPresent += ChoGath.OnPresent;
+
         }
 
         private static void OnUpdate()

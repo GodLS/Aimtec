@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{5E525C0A-25E6-48D6-96D5-0F0E1CFBD30B}</ProjectGuid>
+    <ProjectGuid>{46532A0E-1CA1-446A-8F02-7A8308CD2868}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>SeansChoGath</RootNamespace>
-    <AssemblyName>SeansChoGath</AssemblyName>
+    <RootNamespace>Seans_ChoGath</RootNamespace>
+    <AssemblyName>Seans ChoGath</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -35,16 +35,12 @@
     <Reference Include="Aimtec">
       <HintPath>C:\Users\Sean\AppData\Local\AimtecLoader\Data\System\Aimtec.dll</HintPath>
     </Reference>
-    <Reference Include="Aimtec.SDK, Version=1.0.0.14, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Aimtec.SDK">
       <HintPath>C:\Users\Sean\AppData\Local\AimtecLoader\Data\System\Aimtec.SDK.dll</HintPath>
-    </Reference>
-    <Reference Include="SharpDX, Version=2.6.3.0, Culture=neutral, PublicKeyToken=2306ab36a61019a8, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Users\Sean\AppData\Local\AimtecLoader\Data\System\SharpDX.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />

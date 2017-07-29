@@ -7,12 +7,11 @@ using Aimtec.SDK.Menu.Components;
 using Aimtec.SDK.Orbwalking;
 using Aimtec.SDK.Util.Cache;
 
-namespace SeansChoGath
+namespace Seans_ChoGath
 {
-
     class Menu
     {
-        public static Aimtec.SDK.Menu.Menu _menu = new Aimtec.SDK.Menu.Menu("seans", "seans", true);
+        public static Aimtec.SDK.Menu.Menu _menu = new Aimtec.SDK.Menu.Menu("seans.chogath", "Seans Cho'Gath", true);
 
         public static void Create()
         {
@@ -125,6 +124,15 @@ namespace SeansChoGath
             laneclearMenu.Add(new MenuSlider("laneclear.q.min", ">> min minions", 3, 1, 6));
             laneclearMenu.Add(new MenuBool("laneclear.e", "Use E"));
             laneclearMenu.Add(new MenuSlider("laneclear.e.min", ">> min minions", 3, 1, 6));
+
+
+
+
+            var drawingsMenu = new Aimtec.SDK.Menu.Menu("drawings", "Drawings");
+            _menu.Add(drawingsMenu);
+            drawingsMenu.Add(new MenuBool("drawings.q", "Draw Q"));
+            drawingsMenu.Add(new MenuBool("drawings.w", "Draw W"));
+            drawingsMenu.Add(new MenuBool("drawings.r", "Draw R"));
 
             _menu.Attach();
         }

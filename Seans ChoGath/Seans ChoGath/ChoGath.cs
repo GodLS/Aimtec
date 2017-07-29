@@ -1,27 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.AccessControl;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using Aimtec;
 using Aimtec.SDK.Damage;
 using Aimtec.SDK.Extensions;
 using Aimtec.SDK.Menu.Components;
-using Aimtec.SDK.Menu.Config;
 using Aimtec.SDK.Orbwalking;
-using Aimtec.SDK.Prediction.Collision;
 using Aimtec.SDK.Prediction.Skillshots;
 using Aimtec.SDK.Prediction.Skillshots.AoE;
 using Aimtec.SDK.TargetSelector;
 using Aimtec.SDK.Util.Cache;
 
-namespace SeansChoGath
+namespace Seans_ChoGath
 {
-    class ChoGath
+    internal class ChoGath
     {
-    public static Obj_AI_Hero Player => GameObjects.Player;
+        public static Obj_AI_Hero Player => GameObjects.Player;
 
         public static void Run()
         {
@@ -49,16 +41,16 @@ namespace SeansChoGath
                     break;
                 case OrbwalkingMode.Custom:
                     break;
+                default: break;
             }
         }
-
 
 
         private static double GetQDamage(Obj_AI_Base hero)
         {
             var qDamage = Player.CalculateDamage(hero, DamageType.Magical,
-                new double[] {80, 135, 190, 245, 300}[Player.SpellBook.GetSpell(SpellSlot.Q).Level - 1] +
-                (Player.TotalAbilityDamage));
+                new double[] { 80, 135, 190, 245, 300 }[Player.SpellBook.GetSpell(SpellSlot.Q).Level - 1] +
+                Player.TotalAbilityDamage);
 
             return qDamage;
         }
@@ -66,19 +58,19 @@ namespace SeansChoGath
         private static double GetWDamage(Obj_AI_Base hero)
         {
             var wDamage = Player.CalculateDamage(hero, DamageType.Magical,
-                new double[] { 75 , 125 , 175 , 225 , 275 }[Player.SpellBook.GetSpell(SpellSlot.W).Level - 1] +
-                (Player.TotalAbilityDamage * .7f));
+                new double[] { 75, 125, 175, 225, 275 }[Player.SpellBook.GetSpell(SpellSlot.W).Level - 1] +
+                Player.TotalAbilityDamage * .7f);
 
             return wDamage;
         }
 
         private static double GetRDamage(Obj_AI_Base hero)
         {
-            var bonusHealth = Player.MaxHealth - (574.480 + (56.480 * Player.Level));
+            var bonusHealth = Player.MaxHealth - (574.480 + 56.480 * Player.Level);
 
             var rDamage = Player.CalculateDamage(hero, DamageType.True,
                 new double[] { 300, 475, 650 }[Player.SpellBook.GetSpell(SpellSlot.R).Level - 1] +
-                (Player.TotalAbilityDamage * .5f) + (.1 * bonusHealth));
+                Player.TotalAbilityDamage * .5f + .1 * bonusHealth);
 
             return rDamage;
         }
@@ -88,7 +80,9 @@ namespace SeansChoGath
         {
             foreach (var hero in GameObjects.EnemyHeroes.Where(h => h.IsValidTarget(Spells.Q.Range)))
             {
-                if (Spells.R.Ready && hero.IsValidTarget(Spells.R.Range) && Menu._menu["misc"]["misc.ks.r"].As<MenuBool>().Enabled && Menu._menu["misc"]["misc.ks.r.whitelist"][hero.ChampionName].As<MenuBool>().Enabled)
+                if (Spells.R.Ready && hero.IsValidTarget(Spells.R.Range) &&
+                    Menu._menu["misc"]["misc.ks.r"].As<MenuBool>().Enabled &&
+                    Menu._menu["misc"]["misc.ks.r.whitelist"][hero.ChampionName].As<MenuBool>().Enabled)
                 {
                     var rDamage = GetRDamage(hero);
 
@@ -96,31 +90,26 @@ namespace SeansChoGath
                         Spells.R.CastOnUnit(hero);
                 }
 
-                if (Spells.W.Ready && hero.IsValidTarget(Spells.W.Range) && Menu._menu["misc"]["misc.ks.w"].As<MenuBool>().Enabled)
-                {
+                if (Spells.W.Ready && hero.IsValidTarget(Spells.W.Range) &&
+                    Menu._menu["misc"]["misc.ks.w"].As<MenuBool>().Enabled)
                     if (hero.Health <= GetWDamage(hero))
                     {
                         var wPred = FixAOEPred.GetCirclePrediction(Spells.W.GetPredictionInput(hero));
 
                         if (wPred.HitChance >= HitChance.High)
                             if (wPred.AoeTargetsHit.Contains(hero))
-                            Spells.W.Cast(wPred.CastPosition);
+                                Spells.W.Cast(wPred.CastPosition);
                     }
-                }
 
                 if (Spells.Q.Ready && hero.IsValidTarget() && Menu._menu["misc"]["misc.ks.q"].As<MenuBool>().Enabled)
-                {
                     if (hero.Health <= GetQDamage(hero))
                     {
                         var qPred = FixAOEPred.GetCirclePrediction(Spells.Q.GetPredictionInput(hero));
 
                         if (qPred.HitChance >= HitChance.High)
                             if (qPred.AoeTargetsHit.Contains(hero))
-                            Spells.Q.Cast(qPred.CastPosition);
+                                Spells.Q.Cast(qPred.CastPosition);
                     }
-                }
-
-
             }
         }
 
@@ -145,13 +134,11 @@ namespace SeansChoGath
                         return;
 
                     if (Menu._menu["combo"]["combo.r.menu"]["combo.r.willkill"].As<MenuBool>().Enabled)
-                    {
                         if (rTarget.Health <= GetRDamage(rTarget))
                         {
                             Spells.R.Cast(rTarget);
                             return;
                         }
-                    }
 
                     if (Player.HealthPercent() <= 10 && Player.CountEnemyHeroesInRange(1000f) >= 1)
                     {
@@ -163,18 +150,19 @@ namespace SeansChoGath
 
             if (Spells.E.Ready && Menu._menu["combo"]["combo.e.menu"]["combo.e"].As<MenuBool>().Enabled)
             {
-                var eTarget = selectedTarget.IsValidTarget(Spells.E.Range) ? selectedTarget : TargetSelector.GetTarget(Spells.E.Range);
+                var eTarget = selectedTarget.IsValidTarget(Spells.E.Range)
+                    ? selectedTarget
+                    : TargetSelector.GetTarget(Spells.E.Range);
                 if (Menu._menu["combo"]["combo.attackselectedonly"].As<MenuBool>().Enabled)
-                    eTarget = selectedTarget.IsValidTarget() ? selectedTarget : TargetSelector.GetTarget(Spells.E.Range);
+                    eTarget = selectedTarget.IsValidTarget()
+                        ? selectedTarget
+                        : TargetSelector.GetTarget(Spells.E.Range);
                 if (eTarget != null)
-                {
-
                     if (!Menu._menu["combo"]["combo.e.menu"]["combo.e.resetaaonly"].As<MenuBool>().Enabled)
                     {
                         Spells.E.Cast();
                         return;
                     }
-                }
             }
 
 
@@ -188,15 +176,12 @@ namespace SeansChoGath
                         ? selectedTarget
                         : TargetSelector.GetTarget(Spells.W.Range);
                 if (wTarget != null)
-                {
-
                     if (Menu._menu["combo"]["combo.w.menu"]["combo.w.aoe"].As<MenuBool>().Enabled)
                     {
                         foreach (var hero in GameObjects.EnemyHeroes.Where(
                             h => h != null && h.IsValidTarget(Spells.W.Range)))
                         {
-
-                            PredictionOutput wAoePrediction =
+                            var wAoePrediction =
                                 AoePrediction.GetAoEPrediction(Spells.W
                                     .GetPredictionInput(
                                         hero));
@@ -204,7 +189,7 @@ namespace SeansChoGath
                             // Cone AoE pred is so buggin and Im too retarded to fix, so we use this. LUL
                             if (Player.CountEnemyHeroesInRange(Spells.W.Range) == 1)
                                 wAoePrediction = FixAOEPred.GetConePrediction(Spells.W.GetPredictionInput(hero));
-                        
+
 
                             if (wAoePrediction.AoeHitCount >=
                                 Menu._menu["combo"]["combo.w.menu"]["combo.w.aoe.mintargets"].As<MenuSlider>().Value)
@@ -231,7 +216,6 @@ namespace SeansChoGath
                         Spells.W.Cast(wTarget);
                         return;
                     }
-                }
             }
 
             if (Spells.Q.Ready && Menu._menu["combo"]["combo.q.menu"]["combo.q"].As<MenuBool>().Enabled)
@@ -245,13 +229,11 @@ namespace SeansChoGath
                         : TargetSelector.GetTarget(Spells.Q.Range);
 
                 if (qTarget != null)
-                {
                     if (Menu._menu["combo"]["combo.q.menu"]["combo.q.aoe"].As<MenuBool>().Enabled)
-                    {
                         foreach (var hero in GameObjects.EnemyHeroes.Where(
                             h => h.IsValidTarget(Spells.Q.Range)))
                         {
-                            PredictionOutput qAoePrediction =
+                            var qAoePrediction =
                                 FixAOEPred.GetCirclePrediction(Spells.Q.GetPredictionInput(hero));
 
                             if (qAoePrediction.AoeHitCount >=
@@ -271,21 +253,11 @@ namespace SeansChoGath
                                     Spells.Q.Cast(qAoePrediction.CastPosition);
                                     return;
                                 }
-
-
                             }
                         }
-                    }
                     else
-                    {
                         Spells.Q.Cast(qTarget);
-                        return;
-                    }
-
-                }
             }
-
-
         }
 
         public static void Harass()
@@ -304,18 +276,17 @@ namespace SeansChoGath
 
                 if (rTarget != null)
                 {
-                    if (!Menu._menu["harass"]["harass.r.menu"]["harass.r.whitelist"][rTarget.ChampionName].As<MenuBool>()
+                    if (!Menu._menu["harass"]["harass.r.menu"]["harass.r.whitelist"][rTarget.ChampionName]
+                            .As<MenuBool>()
                             .Enabled && selectedTarget != rTarget)
                         return;
 
                     if (Menu._menu["harass"]["harass.r.menu"]["harass.r.willkill"].As<MenuBool>().Enabled)
-                    {
                         if (rTarget.Health <= GetRDamage(rTarget))
                         {
                             Spells.R.Cast(rTarget);
                             return;
                         }
-                    }
 
                     if (Player.HealthPercent() <= 10 && Player.CountEnemyHeroesInRange(1000f) >= 1)
                     {
@@ -327,24 +298,24 @@ namespace SeansChoGath
 
             if (Spells.E.Ready && Menu._menu["harass"]["harass.e.menu"]["harass.e"].As<MenuBool>().Enabled)
             {
-                var eTarget = selectedTarget.IsValidTarget(Spells.E.Range) ? selectedTarget : TargetSelector.GetTarget(Spells.E.Range);
+                var eTarget = selectedTarget.IsValidTarget(Spells.E.Range)
+                    ? selectedTarget
+                    : TargetSelector.GetTarget(Spells.E.Range);
                 if (Menu._menu["harass"]["harass.attackselectedonly"].As<MenuBool>().Enabled)
-                    eTarget = selectedTarget.IsValidTarget() ? selectedTarget : TargetSelector.GetTarget(Spells.E.Range);
+                    eTarget = selectedTarget.IsValidTarget()
+                        ? selectedTarget
+                        : TargetSelector.GetTarget(Spells.E.Range);
                 if (eTarget != null)
-                {
-
                     if (!Menu._menu["harass"]["harass.e.menu"]["harass.e.resetaaonly"].As<MenuBool>().Enabled)
                     {
                         Spells.E.Cast();
                         return;
                     }
-                }
             }
 
 
             if (Spells.W.Ready && Menu._menu["harass"]["harass.w.menu"]["harass.w"].As<MenuBool>().Enabled)
             {
-
                 var wTarget = selectedTarget.IsValidTarget(Spells.W.Range)
                     ? selectedTarget
                     : TargetSelector.GetTarget(Spells.W.Range);
@@ -353,15 +324,12 @@ namespace SeansChoGath
                         ? selectedTarget
                         : TargetSelector.GetTarget(Spells.W.Range);
                 if (wTarget != null)
-                {
-
                     if (Menu._menu["harass"]["harass.w.menu"]["harass.w.aoe"].As<MenuBool>().Enabled)
                     {
                         foreach (var hero in GameObjects.EnemyHeroes.Where(
                             h => h != null && h.IsValidTarget(Spells.W.Range)))
                         {
-
-                            PredictionOutput wAoePrediction =
+                            var wAoePrediction =
                                 AoePrediction.GetAoEPrediction(Spells.W
                                     .GetPredictionInput(
                                         hero));
@@ -396,7 +364,6 @@ namespace SeansChoGath
                         Spells.W.Cast(wTarget);
                         return;
                     }
-                }
             }
 
             if (Spells.Q.Ready && Menu._menu["harass"]["harass.q.menu"]["harass.q"].As<MenuBool>().Enabled)
@@ -410,13 +377,12 @@ namespace SeansChoGath
                         : TargetSelector.GetTarget(Spells.Q.Range);
 
                 if (qTarget != null)
-                {
                     if (Menu._menu["harass"]["harass.q.menu"]["harass.q.aoe"].As<MenuBool>().Enabled)
                     {
                         foreach (var hero in GameObjects.EnemyHeroes.Where(
                             h => h.IsValidTarget(Spells.Q.Range)))
                         {
-                            PredictionOutput qAoePrediction =
+                            var qAoePrediction =
                                 FixAOEPred.GetCirclePrediction(Spells.Q.GetPredictionInput(hero));
 
                             if (qAoePrediction.AoeHitCount >=
@@ -436,18 +402,13 @@ namespace SeansChoGath
                                     Spells.Q.Cast(qAoePrediction.CastPosition);
                                     return;
                                 }
-
-
                             }
                         }
                     }
                     else
                     {
                         Spells.Q.Cast(qTarget);
-                        return;
                     }
-
-                }
             }
         }
 
@@ -457,7 +418,6 @@ namespace SeansChoGath
                 return;
 
             if (Spells.Q.Ready && Menu._menu["laneclear"]["laneclear.q"].As<MenuBool>().Enabled)
-            {
                 foreach (var minion in GameObjects.EnemyMinions.Where(x => x.IsValidTarget(Spells.Q.Range)))
                 {
                     var m = GameObjects.EnemyMinions
@@ -467,13 +427,10 @@ namespace SeansChoGath
                     {
                         Spells.Q.Cast(minion);
                         return;
-                    }                                   
+                    }
                 }
-            }
 
             if (Spells.W.Ready && Menu._menu["laneclear"]["laneclear.w"].As<MenuBool>().Enabled)
-            {
-                // Will have to do for now LUL
                 foreach (var minion in GameObjects.EnemyMinions.Where(x => x.IsValidTarget(Spells.W.Range)))
                 {
                     var m = GameObjects.EnemyMinions
@@ -484,10 +441,9 @@ namespace SeansChoGath
                         Spells.W.Cast(minion);
                         return;
                     }
-
                 }
-            }
         }
+
 
         public static void PostAttack(object sender, PostAttackEventArgs e)
         {
@@ -496,26 +452,35 @@ namespace SeansChoGath
 
             switch (Orbwalker.Implementation.Mode)
             {
-                    case OrbwalkingMode.Combo:
-                        if (Spells.E.Ready && Menu._menu["combo"]["combo.e.menu"]["combo.e"].As<MenuBool>().Enabled)
-                            Spells.E.Cast();
+                case OrbwalkingMode.Combo:
+                    if (Spells.E.Ready && Menu._menu["combo"]["combo.e.menu"]["combo.e"].As<MenuBool>().Enabled)
+                        Spells.E.Cast();
                     break;
-                    case OrbwalkingMode.Mixed:
-                        if (Spells.E.Ready && Menu._menu["harass"]["harass.e.menu"]["harass.e"].As<MenuBool>().Enabled)
-                            Spells.E.Cast();
+                case OrbwalkingMode.Mixed:
+                    if (Spells.E.Ready && Menu._menu["harass"]["harass.e.menu"]["harass.e"].As<MenuBool>().Enabled)
+                        Spells.E.Cast();
                     break;
                 default: break;
-            }              
+            }
         }
 
-        public static void OnProcessSpellCast(Obj_AI_Base sender, Obj_AI_BaseMissileClientDataEventArgs e)
+        public static void OnPresent()
         {
-            // Temporary fix until SDK merges fix
-
-            //if (sender.IsMe && e.SpellSlot == SpellSlot.E)
-            //{
-            //    Orbwalker.Implementation.ResetAutoAttackTimer();
-            //}
+            if (Menu._menu["drawings"]["drawings.q"].As<MenuBool>().Enabled)
+            {
+                var color = Spells.Q.Ready ? System.Drawing.Color.White : System.Drawing.Color.Gray;
+                Render.Circle(Player.Position, Spells.Q.Range, 50, color);
+            }
+            if (Menu._menu["drawings"]["drawings.w"].As<MenuBool>().Enabled)
+            {
+                var color = Spells.W.Ready ? System.Drawing.Color.White : System.Drawing.Color.Gray;
+                Render.Circle(Player.Position, Spells.W.Range, 50, color);
+            }
+            if (Menu._menu["drawings"]["drawings.r"].As<MenuBool>().Enabled)
+            {
+                var color = Spells.R.Ready ? System.Drawing.Color.White : System.Drawing.Color.Gray;
+                Render.Circle(Player.Position, Spells.R.Range, 50, color);
+            }
         }
 
         public static void OnLevelUp(Obj_AI_Base sender, Obj_AI_BaseLevelUpEventArgs e)

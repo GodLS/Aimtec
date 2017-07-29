@@ -8,7 +8,7 @@ using Aimtec.SDK.Extensions;
 using Aimtec.SDK.Prediction.Skillshots;
 using Aimtec.SDK.Util.Cache;
 
-namespace SeansChoGath
+namespace Seans_ChoGath
 {
     class FixAOEPred
     {
@@ -198,6 +198,6 @@ namespace SeansChoGath
                          && x.t.edge1.CrossProduct(x.t.point) > 0 && x.t.point.CrossProduct(x.edge2) > 0)
                 .Select(x => x.t.point).Count();
         }
-    
+
     }
 }

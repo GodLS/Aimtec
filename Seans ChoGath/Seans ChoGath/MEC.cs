@@ -1,13 +1,11 @@
-﻿using Aimtec;
+﻿using System.Drawing;
+using Aimtec;
 
-namespace SeansChoGath
+namespace Seans_ChoGath
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-
-    using SharpDX;
-    using Vector2 = Aimtec.Vector2;
 
     /// <summary>
     ///     Provides method to calculate the minimum enclosing circle.
@@ -145,7 +143,7 @@ namespace SeansChoGath
             Vector2[] best_pt = { points[0] };
             foreach (
                 var pt in points.Where(pt => (pt.Y < best_pt[0].Y) || ((pt.Y == best_pt[0].Y) && (pt.X < best_pt[0].X)))
-                )
+            )
             {
                 best_pt[0] = pt;
             }
@@ -269,9 +267,9 @@ namespace SeansChoGath
             int skip3)
         {
             return (from point in points.Where((t, i) => (i != skip1) && (i != skip2) && (i != skip3))
-                    let dx = center.X - point.X
-                    let dy = center.Y - point.Y
-                    select dx * dx + dy * dy).All(test_radius2 => !(test_radius2 > radius2));
+                let dx = center.X - point.X
+                let dy = center.Y - point.Y
+                select dx * dx + dy * dy).All(test_radius2 => !(test_radius2 > radius2));
         }
 
         /// <summary>
@@ -410,8 +408,8 @@ namespace SeansChoGath
             var results =
                 points.Where(
                     pt =>
-                    pt.X <= culling_box.Left || pt.X >= culling_box.Right || pt.Y <= culling_box.Top
-                    || pt.Y >= culling_box.Bottom).ToList();
+                        pt.X <= culling_box.Left || pt.X >= culling_box.Right || pt.Y <= culling_box.Top
+                        || pt.Y >= culling_box.Bottom).ToList();
 
             g_NonCulledPoints = new Vector2[results.Count]; // For debugging.
             results.CopyTo(g_NonCulledPoints); // For debugging.
