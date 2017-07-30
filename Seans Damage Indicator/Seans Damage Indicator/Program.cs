@@ -21,7 +21,7 @@ namespace Seans_Damage_Indicator
 
         private static void GameStart()
         {
-            CheckVersion(0.2);
+            CheckVersion(0.3);
 
             Menu.Create();
             Spells.Create();
