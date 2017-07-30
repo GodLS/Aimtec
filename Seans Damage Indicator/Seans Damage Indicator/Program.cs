@@ -17,7 +17,6 @@ namespace Seans_Damage_Indicator
         static void Main(string[] args)
         {
             GameEvents.GameStart += GameStart;
-
         }
 
         private static void GameStart()
@@ -48,7 +47,6 @@ namespace Seans_Damage_Indicator
                 else
                 {
                     Console.WriteLine(">> [[ SEANS DAMAGE INDICATOR ]] - UP TO DATE <<");
-
                 }
             }
         }

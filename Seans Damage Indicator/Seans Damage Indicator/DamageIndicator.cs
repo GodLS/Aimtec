@@ -14,6 +14,8 @@ using Aimtec.SDK.Extensions;
 using Aimtec.SDK.Menu.Components;
 using Aimtec.SDK.Util.Cache;
 
+// Credit to l# common, pastelcomcoca
+
 namespace Seans_Damage_Indicator
 {
     internal class DamageIndicator
@@ -69,7 +71,6 @@ namespace Seans_Damage_Indicator
                 var xPos = barPos.X + XOffset + (Width * percentHealthAfterDamage);
 
                 Render.Rectangle(new Vector2((float) xPos, posY), (float)difference, Height, Color.FromArgb(100, 255, 255, 255));
-
             }
         }
 
