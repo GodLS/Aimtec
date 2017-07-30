@@ -32,7 +32,7 @@ namespace Seans_Damage_Indicator
         private static void CheckVersion(double currentVersion)
         {
             WebClient client = new WebClient();
-            Stream stream = client.OpenRead("https://placeholder");
+            Stream stream = client.OpenRead("https://github.com/GodLS/Aimtec/blob/master/Seans%20Damage%20Indicator/Seans%20Damage%20Indicator/version.txt");
             if (stream != null)
             {
                 StreamReader reader = new StreamReader(stream);
