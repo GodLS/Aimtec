@@ -28,7 +28,7 @@ namespace Seans_Damage_Indicator
             // Annie
             "InfernalGuardianGuide",
             // Shaco
-            "HallucinateGuide"
+            //"HallucinateGuide"
         };
     }
 }
