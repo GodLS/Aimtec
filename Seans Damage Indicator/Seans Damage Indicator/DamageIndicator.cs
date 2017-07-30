@@ -45,23 +45,27 @@ namespace Seans_Damage_Indicator
                 double eDamage = 0;
                 double rDamage = 0;
                 double aaDamage = 0;
+                double igniteDamage = 0;
                 double totalDamage = 0;
 
-                if (Spells.Q.Ready)
+                if (Spells.Q.Ready && Menu._menu["q"].As<MenuBool>().Enabled)
                     qDamage = Player.GetSpellDamage(enemy, SpellSlot.Q);
 
-                if (Spells.W.Ready)
+                if (Spells.W.Ready && Menu._menu["w"].As<MenuBool>().Enabled)
                     wDamage = Player.GetSpellDamage(enemy, SpellSlot.W);
 
-                if (Spells.E.Ready)
-                    eDamage = Player.GetSpellDamage(enemy, SpellSlot.E);
-                
-                if (Spells.R.Ready && !Spells.PetSpells.Contains(Player.GetSpell(SpellSlot.R).SpellData.Name))
+                if (Spells.E.Ready && Menu._menu["e"].As<MenuBool>().Enabled)
+                    eDamage = Player.GetSpellDamage(enemy, SpellSlot.E);         
+
+                if (Spells.R.Ready && !Spells.PetSpells.Contains(Player.GetSpell(SpellSlot.R).SpellData.Name) && Menu._menu["r"].As<MenuBool>().Enabled)
                     rDamage = Player.GetSpellDamage(enemy, SpellSlot.R);
 
                 aaDamage = Player.GetAutoAttackDamage(enemy) * (Menu._menu["autoattackcount"].As<MenuSliderBool>().Enabled ? Menu._menu["autoattackcount"].Value : 0);
 
-                totalDamage = qDamage + wDamage + eDamage + rDamage + aaDamage;
+                if (Spells.Ignite.Ready && Menu._menu["ignite"].As<MenuBool>().Enabled)
+                    igniteDamage = 50 + (20 * Player.Level) - enemy.HPRegenRate / 5 * 3;
+
+                totalDamage = qDamage + wDamage + eDamage + rDamage + aaDamage + igniteDamage;
             
                 var percentHealthAfterDamage = Math.Max(0, enemy.Health - totalDamage) / enemy.MaxHealth;
                 var posY = barPos.Y + YOffset;

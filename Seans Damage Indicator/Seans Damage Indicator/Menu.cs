@@ -17,7 +17,12 @@ namespace Seans_Damage_Indicator
             _menu.Attach();
 
             _menu.Add(new MenuBool("enabled", "Enabled"));
-            _menu.Add(new MenuSliderBool("autoattackcount", "Auto attacks to add", false, 1, 1, 10));
+            _menu.Add(new MenuBool("q", "Add Q damage"));
+            _menu.Add(new MenuBool("w", "Add W damage"));
+            _menu.Add(new MenuBool("e", "Add E damage"));
+            _menu.Add(new MenuBool("r", "Add R damage"));
+            _menu.Add(new MenuBool("ignite", "Add Ignite damage"));
+            _menu.Add(new MenuSliderBool("autoattackcount", "Add X auto attack(s) danage", false, 1, 1, 10));
         }
     }
 }
