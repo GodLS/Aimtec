@@ -21,9 +21,10 @@ namespace Seans_Damage_Indicator
 
         private static void GameStart()
         {
+            CheckVersion(0.1);
+
             Menu.Create();
             Spells.Create();
-            CheckVersion(0.1);
 
             Render.OnPresent += DamageIndicator.OnPresent;
         }
@@ -36,18 +37,18 @@ namespace Seans_Damage_Indicator
             {
                 StreamReader reader = new StreamReader(stream);
                 String content = reader.ReadToEnd();
-                Regex versionString = new Regex(@"version:[0-9]+");
-                Regex versionNumber = new Regex(@"[0-9]+");
+                Regex versionString = new Regex(@"version:\d+\.\d+");
+                Regex versionNumber = new Regex(@"\d+.\d+");
 
-                if (Convert.ToDouble(versionNumber.IsMatch(versionString.Match(content).Value)) > currentVersion)
+                if (Convert.ToDouble(versionNumber.Match(versionString.Match(content).Value).Value) > currentVersion)
                 {
                     for (int i = 0; i < 10; i++)
                         Console.WriteLine(">> [[ SEANS DAMAGE INDICATOR ]] - OUTDATED - PLEASE UPDATE <<");
                 }
                 else
-                {
                     Console.WriteLine(">> [[ SEANS DAMAGE INDICATOR ]] - UP TO DATE <<");
-                }
+
+
             }
         }
     }
