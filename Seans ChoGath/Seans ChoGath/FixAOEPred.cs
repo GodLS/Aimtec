@@ -28,7 +28,7 @@ namespace Seans_ChoGath
 
         public static PredictionOutput GetCirclePrediction(PredictionInput input)
         {
-            var mainTargetPrediction = Prediction.GetPrediction(input);
+            var mainTargetPrediction = Prediction.Instance.Implementation.GetPrediction(input);
             var posibleTargets = new List<cPossibleTarget>
             {
                 new cPossibleTarget
@@ -43,7 +43,7 @@ namespace Seans_ChoGath
                 //Add the posible targets  in range:
                 foreach (var h in ObjectManager.Get<Obj_AI_Hero>().Where(e => e.IsEnemy && e.IsValidTarget(input.Radius, false, true, mainTargetPrediction.UnitPosition) && e != input.Unit))
                 {
-                    var prediction = Prediction.GetPrediction(Spells.Q.GetPredictionInput(h));
+                    var prediction = Prediction.Instance.Implementation.GetPrediction(Spells.Q.GetPredictionInput(h));
                     if (prediction.HitChance >= HitChance.Medium)
                     {
                         posibleTargets.Add(new cPossibleTarget { Position = prediction.UnitPosition.To2D(), Unit = h });
@@ -101,7 +101,7 @@ namespace Seans_ChoGath
 
         public static PredictionOutput GetConePrediction(PredictionInput input)
         {
-            var mainTargetPrediction = Prediction.GetPrediction(input);
+            var mainTargetPrediction = Prediction.Instance.Implementation.GetPrediction(input);
 
             var posibleTargets = new List<cPossibleTarget>
             {
@@ -113,7 +113,7 @@ namespace Seans_ChoGath
                 //Add the posible targets  in range:
                 foreach (var h in ObjectManager.Get<Obj_AI_Hero>().Where(e => e.IsEnemy && e.IsValidTarget(input.Radius, false, true, mainTargetPrediction.UnitPosition) && e != input.Unit))
                 {
-                    var prediction = Prediction.GetPrediction(Spells.W.GetPredictionInput(h));
+                    var prediction = Prediction.Instance.Implementation.GetPrediction(Spells.W.GetPredictionInput(h));
                     if (prediction.HitChance >= HitChance.Medium)
                     {
                         posibleTargets.Add(new cPossibleTarget { Position = prediction.UnitPosition.To2D(), Unit = h });
