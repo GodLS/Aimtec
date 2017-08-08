@@ -1133,15 +1133,15 @@ namespace zzzz
         public static bool CheckPathCollision(Obj_AI_Base unit, Vector2 movePos)
         {
             // fix :
-            return false;
-            //var path = unit.Path;//unit.GetPath(ObjectCache.myHeroCache.serverPos2D.To3D(), movePos.To3D());
+            //return false;
+            var path = /*unit.Path;*/unit.GetPath(ObjectCache.myHeroCache.serverPos2D.To3D(), movePos.To3D());
 
-            var path = new Vector3[(int)movePos.Length + 1];
+            //var path = new Vector3[(int)movePos.Length + 1];
 
-            for (int i = 1; i < movePos.Length / 10; i++)
-            {
-                path[i] = unit.Position.Extend(movePos.To3D(), i * 10);
-            }
+            //for (int i = 1; i < movePos.Length / 10; i++)
+            //{
+            //    path[i] = unit.Position.Extend(movePos.To3D(), i * 10);
+            //}
 
             if (path.Length > 0)
             {
@@ -1157,14 +1157,14 @@ namespace zzzz
         public static bool CheckPointCollision(Obj_AI_Base unit, Vector2 movePos)
         {
             // fix
-            return false;
-            //var path = unit.Path;//unit.GetPath(movePos.To3D());
-            var path = new Vector3[(int)movePos.Length + 1];
+            //return false;
+            var path = /*unit.Path;*/unit.GetPath(movePos.To3D());
+            //var path = new Vector3[(int)movePos.Length + 1];
 
-            for (int i = 1; i < movePos.Length / 10; i++)
-            {
-                path[i] = unit.Position.Extend(movePos.To3D(), i * 10);
-            }
+            //for (int i = 1; i < movePos.Length / 10; i++)
+            //{
+            //    path[i] = unit.Position.Extend(movePos.To3D(), i * 10);
+            //}
 
             if (path.Length > 0)
             {
@@ -1207,8 +1207,8 @@ namespace zzzz
             }
 
             // fix 
-            var poopy = myHero.Path; //from serverpos
-                                    //var path = myHero.GetPath(startPoint, movePos.To3D()); //from serverpos
+            //var poopy = myHero.Path; //from serverpos
+                                    var poopy = myHero.GetPath(startPoint, movePos.To3D()); //from serverpos
            // var poopy = new Vector3[(int)movePos.Length + 1];
 
             //for (int i = 1; i < movePos.Length / 10; i++)
