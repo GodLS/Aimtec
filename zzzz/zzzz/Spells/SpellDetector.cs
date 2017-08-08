@@ -130,7 +130,7 @@ namespace zzzz
                     }
                     else
                     {
-                        if (Evade.mainMenu["DodgeFOWSpells"].As<MenuBool>().Enabled)
+                        if (ObjectCache.menuCache.cache["DodgeFOWSpells"].As<MenuBool>().Enabled)
                         {
                             CreateSpellData(hero, missile.StartPosition, missile.EndPosition, spellData, obj);
                         }
@@ -433,7 +433,7 @@ namespace zzzz
 
         private static void CheckSpellCollision()
         {
-            if (!Evade.miscMenu["CheckSpellCollision"].As<MenuBool>().Enabled)
+            if (!ObjectCache.menuCache.cache["CheckSpellCollision"].As<MenuBool>().Enabled)
             {
                 return;
             }
@@ -463,7 +463,7 @@ namespace zzzz
 
         public static bool CanHeroWalkIntoSpell(Spell spell)
         {
-            if (Evade.miscMenu["AdvancedSpellDetection"].As<MenuBool>().Enabled)
+            if (ObjectCache.menuCache.cache["AdvancedSpellDetection"].As<MenuBool>().Enabled)
             {
                 Vector2 heroPos = myHero.Position.To2D();
                 var extraDist = myHero.Distance(ObjectCache.myHeroCache.serverPos2D);
@@ -532,7 +532,7 @@ namespace zzzz
                 spell.spellHitTime = spellHitTime;
                 spell.evadeTime = evadeTime;
 
-                var extraDelay = ObjectCache.gamePing + Evade.bufferMenu["ExtraPingBuffer"].As<MenuSlider>().Value;
+                var extraDelay = ObjectCache.gamePing + ObjectCache.menuCache.cache["ExtraPingBuffer"].As<MenuSlider>().Value;
 
                 if (spell.spellHitTime - extraDelay < 1500 && CanHeroWalkIntoSpell(spell))
                 //if(true)
@@ -546,19 +546,19 @@ namespace zzzz
                     }
 
                     //var spellFlyTime = Evade.GetTickCount - spell.startTime;
-                    if (spellHitTime < Evade.limiterMenu["SpellDetectionTime"].As<MenuSlider>().Value
+                    if (spellHitTime < ObjectCache.menuCache.cache["SpellDetectionTime"].As<MenuSlider>().Value
                         && !Evade.spellMenu[spell.info.charName + spell.info.spellName + "Settings"][spell.info.spellName + "FastEvade"].As<MenuBool>().Enabled)
                     {
                         continue;
                     }
 
-                    if (EvadeUtils.TickCount - spell.startTime < Evade.limiterMenu["ReactionTime"].As<MenuSlider>().Value
+                    if (EvadeUtils.TickCount - spell.startTime < ObjectCache.menuCache.cache["ReactionTime"].As<MenuSlider>().Value
                         && !Evade.spellMenu[spell.info.charName + spell.info.spellName + "Settings"][spell.info.spellName + "FastEvade"].As<MenuBool>().Enabled)
                     {
                         continue;
                     }
 
-                    var dodgeInterval = Evade.limiterMenu["DodgeInterval"].As<MenuSlider>().Value;
+                    var dodgeInterval = ObjectCache.menuCache.cache["DodgeInterval"].As<MenuSlider>().Value;
                     if (Evade.lastPosInfo != null && dodgeInterval > 0)
                     {
                         var timeElapsed = EvadeUtils.TickCount - Evade.lastPosInfo.timestamp;
@@ -577,7 +577,7 @@ namespace zzzz
                             && Evade.spellMenu[spell.info.charName + spell.info.spellName + "Settings"][newSpell.info.spellName + "DodgeSpell"].As<MenuBool>().Enabled)
                         {
                             if (newSpell.spellType == SpellType.Circular
-                                && Evade.mainMenu["DodgeCircularSpells"].As<MenuBool>().Value == false)
+                                && ObjectCache.menuCache.cache["DodgeCircularSpells"].As<MenuBool>().Value == false)
                             {
                                 //return spellID;
                                 continue;
@@ -592,7 +592,7 @@ namespace zzzz
                         }
                     }
 
-                    if (Evade.miscMenu["CheckSpellCollision"].As<MenuBool>().Enabled
+                    if (ObjectCache.menuCache.cache["CheckSpellCollision"].As<MenuBool>().Enabled
                         && spell.predictedEndPos != Vector2.Zero)
                     {
                         spellAdded = false;
@@ -755,8 +755,8 @@ namespace zzzz
 
             Evade.spellMenu.Add(newSpellMenu);
 
-            Evade.menu.Add(newSpellMenu);
-            //ObjectCache.menuCache.AddMenuToCache(newSpellMenu);
+            //Evade.menu.Add(newSpellMenu);
+            ObjectCache.menuCache.AddMenuToCache(newSpellMenu);
         }
 
         //Credits to Kurisu

@@ -39,7 +39,7 @@ namespace zzzz
             if (!ObjectCache.myHeroCache.HasPath && ObjectCache.myHeroCache.serverPos2D.Distance(pos) <= 75)
                 pos = ObjectCache.myHeroCache.serverPos2D;
 
-            var extraDist = Evade.bufferMenu["ExtraCPADistance"].As<MenuSlider>().Value;
+            var extraDist = ObjectCache.menuCache.cache["ExtraCPADistance"].As<MenuSlider>().Value;
 
             PositionInfo posInfo;
             posInfo = CanHeroWalkToPos(pos, ObjectCache.myHeroCache.moveSpeed, extraDelayBuffer + ObjectCache.gamePing, extraDist);
@@ -50,11 +50,11 @@ namespace zzzz
             posInfo.posDistToChamps = pos.GetDistanceToChampions();
             posInfo.speed = ObjectCache.myHeroCache.moveSpeed;
 
-            if (Evade.fastEvadeMenu["RejectMinDistance"].As<MenuSlider>().Value > 0 &&
-                Evade.fastEvadeMenu["RejectMinDistance"].As<MenuSlider>().Value > posInfo.closestDistance) //reject closestdistance
+            if (ObjectCache.menuCache.cache["RejectMinDistance"].As<MenuSlider>().Value > 0 &&
+                ObjectCache.menuCache.cache["RejectMinDistance"].As<MenuSlider>().Value > posInfo.closestDistance) //reject closestdistance
                 posInfo.rejectPosition = true;
 
-            if (Evade.bufferMenu["MinComfortZone"].As<MenuSlider>().Value > posInfo.posDistToChamps)
+            if (ObjectCache.menuCache.cache["MinComfortZone"].As<MenuSlider>().Value > posInfo.posDistToChamps)
                 posInfo.hasComfortZone = false;
 
             return posInfo;
@@ -70,10 +70,10 @@ namespace zzzz
             Vector2 heroPoint = ObjectCache.myHeroCache.serverPos2D;
             Vector2 lastMovePos = Game.CursorPos.To2D();
 
-            var extraDelayBuffer = Evade.bufferMenu["ExtraPingBuffer"].As<MenuSlider>().Value;
-            var extraEvadeDistance = Evade.bufferMenu["ExtraEvadeDistance"].As<MenuSlider>().Value;
+            var extraDelayBuffer = ObjectCache.menuCache.cache["ExtraPingBuffer"].As<MenuSlider>().Value;
+            var extraEvadeDistance = ObjectCache.menuCache.cache["ExtraEvadeDistance"].As<MenuSlider>().Value;
 
-            if (Evade.miscMenu["HigherPrecision"].As<MenuBool>().Enabled)
+            if (ObjectCache.menuCache.cache["HigherPrecision"].As<MenuBool>().Enabled)
             {
                 maxPosToCheck = 150;
                 posRadius = 25;
@@ -144,13 +144,13 @@ namespace zzzz
             int posRadius = 50;
             int radiusIndex = 0;
 
-            var extraDelayBuffer = Evade.bufferMenu["ExtraPingBuffer"].As<MenuSlider>().Value;
-            var extraEvadeDistance = Evade.bufferMenu["ExtraEvadeDistance"].As<MenuSlider>().Value;
+            var extraDelayBuffer = ObjectCache.menuCache.cache["ExtraPingBuffer"].As<MenuSlider>().Value;
+            var extraEvadeDistance = ObjectCache.menuCache.cache["ExtraEvadeDistance"].As<MenuSlider>().Value;
 
             SpellDetector.UpdateSpells();
             CalculateEvadeTime();
 
-            if (Evade.miscMenu["CalculateWindupDelay"].As<MenuBool>().Enabled)
+            if (ObjectCache.menuCache.cache["CalculateWindupDelay"].As<MenuBool>().Enabled)
             {
                 var extraWindupDelay = Evade.lastWindupTime - EvadeUtils.TickCount;
                 if (extraWindupDelay > 0)
@@ -161,7 +161,7 @@ namespace zzzz
 
             extraDelayBuffer += (int)(Evade.avgCalculationTime);
 
-            if (Evade.miscMenu["HigherPrecision"].As<MenuBool>().Enabled)
+            if (ObjectCache.menuCache.cache["HigherPrecision"].As<MenuBool>().Enabled)
             {
                 maxPosToCheck = 150;
                 posRadius = 25;
@@ -200,7 +200,7 @@ namespace zzzz
 
             IOrderedEnumerable<PositionInfo> sortedPosTable;
 
-            if (Evade.miscMenu["EvadeMode"].As<MenuList>().SelectedItem == "Fastest")
+            if (ObjectCache.menuCache.cache["EvadeMode"].As<MenuList>().SelectedItem == "Fastest")
             {
                 sortedPosTable =
                     posTable.OrderBy(p => p.isDangerousPos)
@@ -218,8 +218,8 @@ namespace zzzz
                         .ThenBy(p => p.posDangerLevel)
                         .ThenBy(p => p.posDangerCount);
             }
-            else if (Evade.fastEvadeMenu["FastEvadeActivationTime"].As<MenuSlider>().Value > 0
-                     && Evade.fastEvadeMenu["FastEvadeActivationTime"].As<MenuSlider>().Value + ObjectCache.gamePing + extraDelayBuffer > lowestEvadeTime)
+            else if (ObjectCache.menuCache.cache["FastEvadeActivationTime"].As<MenuSlider>().Value > 0
+                     && ObjectCache.menuCache.cache["FastEvadeActivationTime"].As<MenuSlider>().Value + ObjectCache.gamePing + extraDelayBuffer > lowestEvadeTime)
             {
                 sortedPosTable =
                     posTable.OrderBy(p => p.isDangerousPos)
@@ -284,15 +284,15 @@ namespace zzzz
             int posRadius = 50;
             int radiusIndex = 0;
 
-            var extraEvadeDistance = Evade.bufferMenu["ExtraAvoidDistance"].As<MenuSlider>().Value;
+            var extraEvadeDistance = ObjectCache.menuCache.cache["ExtraAvoidDistance"].As<MenuSlider>().Value;
 
             Vector2 heroPoint = ObjectCache.myHeroCache.serverPos2D;
             Vector2 lastMovePos = movePos; //Game.CursorPos.To2D(); //movePos
 
             List<PositionInfo> posTable = new List<PositionInfo>();
 
-            var extraDist = Evade.bufferMenu["ExtraCPADistance"].As<MenuSlider>().Value;
-            var extraDelayBuffer = Evade.bufferMenu["ExtraPingBuffer"].As<MenuSlider>().Value;
+            var extraDist = ObjectCache.menuCache.cache["ExtraCPADistance"].As<MenuSlider>().Value;
+            var extraDelayBuffer = ObjectCache.menuCache.cache["ExtraPingBuffer"].As<MenuSlider>().Value;
 
             while (posChecked < maxPosToCheck)
             {
@@ -340,12 +340,12 @@ namespace zzzz
             int posRadius = 50;
             int radiusIndex = 0;
 
-            var extraEvadeDistance = Math.Max(100, Evade.bufferMenu["ExtraEvadeDistance"].As<MenuSlider>().Value);
+            var extraEvadeDistance = Math.Max(100, ObjectCache.menuCache.cache["ExtraEvadeDistance"].As<MenuSlider>().Value);
 
             Vector2 heroPoint = ObjectCache.myHeroCache.serverPos2DPing;
             Vector2 lastMovePos = Game.CursorPos.To2D();
 
-            int minComfortZone = Evade.bufferMenu["MinComfortZone"].As<MenuSlider>().Value;
+            int minComfortZone = ObjectCache.menuCache.cache["MinComfortZone"].As<MenuSlider>().Value;
 
             List<PositionInfo> posTable = new List<PositionInfo>();
 
@@ -398,9 +398,9 @@ namespace zzzz
             int posRadius = 50;
             int radiusIndex = 0;
 
-            var extraDelayBuffer = Evade.bufferMenu["ExtraPingBuffer"].As<MenuSlider>().Value;
-            var extraEvadeDistance = Math.Max(100, Evade.bufferMenu["ExtraEvadeDistance"].As<MenuSlider>().Value);
-            var extraDist = Evade.bufferMenu["ExtraCPADistance"].As<MenuSlider>().Value;
+            var extraDelayBuffer = ObjectCache.menuCache.cache["ExtraPingBuffer"].As<MenuSlider>().Value;
+            var extraEvadeDistance = Math.Max(100, ObjectCache.menuCache.cache["ExtraEvadeDistance"].As<MenuSlider>().Value);
+            var extraDist = ObjectCache.menuCache.cache["ExtraCPADistance"].As<MenuSlider>().Value;
 
             Vector2 heroPoint = ObjectCache.myHeroCache.serverPos2DPing;
             Vector2 lastMovePos = Game.CursorPos.To2D();
@@ -467,9 +467,9 @@ namespace zzzz
 
         public static PositionInfo GetBestPositionTargetedDash(EvadeSpellData spell)
         {
-            var extraDelayBuffer = Evade.bufferMenu["ExtraPingBuffer"].As<MenuSlider>().Value;
-            var extraEvadeDistance = Math.Max(100, Evade.bufferMenu["ExtraEvadeDistance"].As<MenuSlider>().Value);
-            var extraDist = Evade.bufferMenu["ExtraCPADistance"].As<MenuSlider>().Value;
+            var extraDelayBuffer = ObjectCache.menuCache.cache["ExtraPingBuffer"].As<MenuSlider>().Value;
+            var extraEvadeDistance = Math.Max(100, ObjectCache.menuCache.cache["ExtraEvadeDistance"].As<MenuSlider>().Value);
+            var extraDist = ObjectCache.menuCache.cache["ExtraCPADistance"].As<MenuSlider>().Value;
 
             Vector2 heroPoint = ObjectCache.myHeroCache.serverPos2DPing;
             Vector2 lastMovePos = Game.CursorPos.To2D();
@@ -894,7 +894,7 @@ namespace zzzz
 
             Vector2 heroPos = ObjectCache.myHeroCache.serverPos2D;
 
-            var minComfortDistance = Evade.bufferMenu["MinComfortZone"].As<MenuSlider>().Value;
+            var minComfortDistance = ObjectCache.menuCache.cache["MinComfortZone"].As<MenuSlider>().Value;
 
             if (useServerPosition == false)
             {
@@ -1207,14 +1207,14 @@ namespace zzzz
             }
 
             // fix 
-            //var path = myHero.Path; //from serverpos
+            var poopy = myHero.Path; //from serverpos
                                     //var path = myHero.GetPath(startPoint, movePos.To3D()); //from serverpos
-            var poopy = new Vector3[(int)movePos.Length + 1];
+           // var poopy = new Vector3[(int)movePos.Length + 1];
 
-            for (int i = 1; i < movePos.Length / 10; i++)
-            {
-                poopy[i] = startPoint.Extend(movePos.To3D(), i * 10);
-            }
+            //for (int i = 1; i < movePos.Length / 10; i++)
+            //{
+               // poopy[i] = startPoint.Extend(movePos.To3D(), i * 10);
+            //}
 
 
 

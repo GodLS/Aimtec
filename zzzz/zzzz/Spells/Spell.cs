@@ -53,7 +53,7 @@ namespace zzzz
         public static float GetSpellRadius(this Spell spell)
         {
             var radius = Evade.spellMenu[spell.info.charName + spell.info.spellName + "Settings"][spell.info.spellName + "SpellRadius"].As<MenuSlider>().Value;
-            var extraRadius = Evade.bufferMenu["ExtraSpellRadius"].As<MenuSlider>().Value;
+            var extraRadius = ObjectCache.menuCache.cache["ExtraSpellRadius"].As<MenuSlider>().Value;
 
             if (spell.info.hasEndExplosion && spell.spellType == SpellType.Circular)
             {

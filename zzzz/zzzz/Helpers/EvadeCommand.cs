@@ -55,7 +55,7 @@ namespace zzzz
             Evade.lastMoveToPosition = movePos;
             Evade.lastMoveToServerPos = myHero.ServerPosition.To2D();
 
-            myHero.IssueOrder(OrderType.MoveTo, movePos.To3D());
+            myHero.IssueOrder(OrderType.MoveTo, movePos.To3D(), false);
         }
 
         public static void Attack(EvadeSpellData spellData, Obj_AI_Base target)

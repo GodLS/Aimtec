@@ -53,7 +53,7 @@ namespace zzzz
 
         public static bool isNearEnemy(this Vector2 pos, float distance, bool alreadyNear = true)
         {
-            if (Evade.miscMenu["PreventDodgingNearEnemy"].As<MenuBool>().Enabled)
+            if (ObjectCache.menuCache.cache["PreventDodgingNearEnemy"].As<MenuBool>().Enabled)
             {
                 var curDistToEnemies = ObjectCache.myHeroCache.serverPos2D.GetDistanceToChampions();
                 var posDistToEnemies = pos.GetDistanceToChampions();
@@ -79,7 +79,7 @@ namespace zzzz
 
         public static bool IsUnderTurret(this Vector2 pos, bool checkEnemy = true)
         {
-            if (!Evade.miscMenu["PreventDodgingUnderTower"].As<MenuBool>().Enabled)
+            if (!ObjectCache.menuCache.cache["PreventDodgingUnderTower"].As<MenuBool>().Enabled)
             {
                 return false;
             }
@@ -113,13 +113,13 @@ namespace zzzz
         public static bool ShouldDodge()
         {
             // fix
-            if (Evade.keyMenu["DontDodgeKeyEnabled"].As<MenuBool>().Enabled &&
-                Evade.keyMenu["DontDodgeKey"].As<MenuKeyBind>().Enabled)
+            if (ObjectCache.menuCache.cache["DontDodgeKeyEnabled"].As<MenuBool>().Enabled &&
+                ObjectCache.menuCache.cache["DontDodgeKey"].As<MenuKeyBind>().Enabled)
             {
                 return false;
             }
 
-            if (Evade.mainMenu["DodgeSkillShots"].As<MenuKeyBind>().Enabled == false
+            if (ObjectCache.menuCache.cache["DodgeSkillShots"].As<MenuKeyBind>().Enabled == false
                 || CommonChecks()
                 )
             {
@@ -145,13 +145,13 @@ namespace zzzz
         public static bool ShouldUseEvadeSpell()
         {
             // fix
-            if (Evade.keyMenu["DontDodgeKeyEnabled"].As<MenuBool>().Enabled &&
-                Evade.keyMenu["DontDodgeKey"].As<MenuKeyBind>().Enabled)
+            if (ObjectCache.menuCache.cache["DontDodgeKeyEnabled"].As<MenuBool>().Enabled &&
+                ObjectCache.menuCache.cache["DontDodgeKey"].As<MenuKeyBind>().Enabled)
             {
                 return false;
             }
 
-            if (Evade.mainMenu["ActivateEvadeSpells"].As<MenuKeyBind>().Enabled == false
+            if (ObjectCache.menuCache.cache["ActivateEvadeSpells"].As<MenuKeyBind>().Enabled == false
                 || CommonChecks()
                 || Evade.lastWindupTime - EvadeUtils.TickCount > 0)
             {
@@ -167,8 +167,8 @@ namespace zzzz
             return
 
                 Evade.isChanneling
-                || (Evade.keyMenu["DodgeOnlyOnComboKeyEnabled"].As<MenuBool>().Value == true &&
-                    Evade.keyMenu["DodgeComboKey"].As<MenuKeyBind>().Enabled == false)
+                || (ObjectCache.menuCache.cache["DodgeOnlyOnComboKeyEnabled"].As<MenuBool>().Value == true &&
+                    ObjectCache.menuCache.cache["DodgeComboKey"].As<MenuKeyBind>().Enabled == false)
                 || myHero.IsDead
                 || myHero.IsInvulnerable
                 || myHero.IsTargetable == false

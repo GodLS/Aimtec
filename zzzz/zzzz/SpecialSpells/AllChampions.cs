@@ -148,7 +148,7 @@ namespace zzzz.SpecialSpells
 
         private void Game_OnWndProc(WndProcEventArgs e)
         {
-            if (!Evade.miscMenu["ClickRemove"].As<MenuBool>().Enabled)
+            if (!ObjectCache.menuCache.cache["ClickRemove"].As<MenuBool>().Enabled)
             {
                 return;
             }

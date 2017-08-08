@@ -59,7 +59,7 @@ namespace zzzz
             fireDummySpellMenu.Add(new MenuSlider("SpellInterval", "Spell Interval", 2500, 0, 5000));
 
             menu.Add(fireDummySpellMenu);
-
+            ObjectCache.menuCache.AddMenuToCache(menu);
             menu.Attach();
 
             LoadSpellDictionary();
@@ -88,7 +88,7 @@ namespace zzzz
                         }
                         else
                         {
-                            Render.Circle(new Vector3(spellPos.X, spellPos.Y, myHero.Position.Z), (int)spell.radius, 5, Color.White);
+                            Render.Circle(new Vector3(spellPos.X, spellPos.Y, myHero.Position.Z), (int)spell.radius, 50, Color.White);
                         }
                     }
                     else if (spell.spellType == SpellType.Circular)
@@ -133,17 +133,26 @@ namespace zzzz
 
                     //if (Evade.spellMenu[charName + spellName + "Settings"][spellName + "DodgeSpell"].Enabled)
                     //{
-                    added = false;
+                    //if (Evade.spellMenu[charName + spellName + "Settings"][spellName + "DodgeSpell"].As<MenuBool>() == null)
+                    //{
 
-                    if (!added)
-                    {
-                        SpellDetector.LoadDummySpell(spellData);
-                        SpellDetector.CreateSpellData(myHero, spellStartPosition, spellEndPostion, spellData);
+                    //if (!added)
+                    //{
+                    //    SpellDetector.LoadDummySpell(spellData);
+                    //    SpellDetector.CreateSpellData(myHero, spellStartPosition, spellEndPostion, spellData);
 
-                        added = true;
-                    }
+                    //    added = true;
+                    //}
                     //}
 
+                    //lastSpellFireTime = EvadeUtils.TickCount;
+
+                    if (!ObjectCache.menuCache.cache.ContainsKey(spellName + "DodgeSpell"))
+                    {
+                        SpellDetector.LoadDummySpell(spellData);
+                    }
+
+                    SpellDetector.CreateSpellData(myHero, spellStartPosition, spellEndPostion, spellData);
                     lastSpellFireTime = EvadeUtils.TickCount;
                 }
             }

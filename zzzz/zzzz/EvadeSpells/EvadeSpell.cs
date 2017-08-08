@@ -170,10 +170,10 @@ namespace zzzz
 
             var sortedEvadeSpells = evadeSpells.OrderBy(s => s.dangerlevel);
 
-            var extraDelayBuffer = Evade.bufferMenu["ExtraPingBuffer"].As<MenuSlider>().Value;
-            float spellActivationTime = Evade.fastEvadeMenu["SpellActivationTime"].As<MenuSlider>().Value + ObjectCache.gamePing + extraDelayBuffer;
+            var extraDelayBuffer = ObjectCache.menuCache.cache["ExtraPingBuffer"].As<MenuSlider>().Value;
+            float spellActivationTime = ObjectCache.menuCache.cache["SpellActivationTime"].As<MenuSlider>().Value + ObjectCache.gamePing + extraDelayBuffer;
 
-            if (Evade.miscMenu["CalculateWindupDelay"].As<MenuBool>().Enabled)
+            if (ObjectCache.menuCache.cache["CalculateWindupDelay"].As<MenuBool>().Enabled)
             {
                 var extraWindupDelay = Evade.lastWindupTime - EvadeUtils.TickCount;
                 if (extraWindupDelay > 0)
@@ -188,11 +188,10 @@ namespace zzzz
 
                 if (Evade.evadeSpellMenu[evadeSpell.charName + evadeSpell.name + "EvadeSpellSettings"][evadeSpell.name + "UseEvadeSpell"].As<MenuBool>().Value == false
                     || GetSpellDangerLevel(evadeSpell) > spell.GetSpellDangerLevel()
-                    || (evadeSpell.isItem == false && !myHero.SpellBook.CanUseSpell(evadeSpell.spellKey))
-                    || (evadeSpell.isItem && !myHero.SpellBook.CanUseSpell(evadeSpell.spellKey)
+                    || (evadeSpell.isItem == false && !myHero.SpellBook.CanUseSpell(evadeSpell.spellKey)
+                    //|| (evadeSpell.isItem && !myHero.SpellBook.CanUseSpell(evadeSpell.spellKey)
                     || (evadeSpell.checkSpellName && myHero.SpellBook.GetSpell(evadeSpell.spellKey).Name != evadeSpell.spellName)))
                 {
-                    //Console.WriteLine("Cant use spell");
                     continue; //can't use spell right now               
                 }
 
@@ -238,7 +237,7 @@ namespace zzzz
                 }
 
                 if (evadeSpell.evadeType != EvadeType.Dash && spellHitTime > evadeSpell.spellDelay + 100 + Game.Ping +
-                    Evade.bufferMenu["ExtraPingBuffer"].As<MenuSlider>().Value)
+                    ObjectCache.menuCache.cache["ExtraPingBuffer"].As<MenuSlider>().Value)
                 {
                     processSpell = false;
 
@@ -267,7 +266,11 @@ namespace zzzz
                         var posInfo = EvadeHelper.GetBestPositionBlink();
                         if (posInfo != null)
                         {
-                            CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell, posInfo.position), processSpell);
+                            if (processSpell)
+                            {
+                                myHero.SpellBook.CastSpell(evadeSpell.spellKey, posInfo.position.To3D());
+                            }
+                            //CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell, posInfo.position), processSpell);
                             //DelayAction.Add(50, () => myHero.IssueOrder(OrderType.MoveTo, posInfo.position.To3D()));
                             return true;
                         }
@@ -277,7 +280,11 @@ namespace zzzz
                         var posInfo = EvadeHelper.GetBestPositionTargetedDash(evadeSpell);
                         if (posInfo != null && posInfo.target != null && posInfo.posDangerLevel == 0)
                         {
-                            CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell, posInfo.target), processSpell);
+                            if (processSpell)
+                            {
+                                myHero.SpellBook.CastSpell(evadeSpell.spellKey, posInfo.target);
+                            }
+                            //CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell, posInfo.target), processSpell);
                             //DelayAction.Add(50, () => myHero.IssueOrder(OrderType.MoveTo, posInfo.position.To3D()));
                             return true;
                         }
@@ -299,7 +306,10 @@ namespace zzzz
                                 posInfo.position = pos;
                             }
 
-                            CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell, posInfo.position), processSpell);
+                            if (processSpell)
+                            {
+                                myHero.SpellBook.CastSpell(evadeSpell.spellKey, posInfo.position.To3D());
+                            }
                             //DelayAction.Add(50, () => myHero.IssueOrder(OrderType.MoveTo, posInfo.position.To3D()));
                             return true;
                         }
@@ -309,7 +319,11 @@ namespace zzzz
                         var posInfo = EvadeHelper.GetBestPositionTargetedDash(evadeSpell);
                         if (posInfo != null && posInfo.target != null && posInfo.posDangerLevel == 0)
                         {
-                            CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell, posInfo.target), processSpell);
+                            if (processSpell)
+                            {
+                                myHero.SpellBook.CastSpell(evadeSpell.spellKey, posInfo.target);
+                            }
+                            //CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell, posInfo.target), processSpell);
                             //DelayAction.Add(50, () => myHero.IssueOrder(OrderType.MoveTo, posInfo.position.To3D()));
                             return true;
                         }
@@ -322,7 +336,11 @@ namespace zzzz
                         var dir = (spell.startPos - ObjectCache.myHeroCache.serverPos2D).Normalized();
                         var pos = ObjectCache.myHeroCache.serverPos2D + dir * 100;
 
-                        CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell, pos), processSpell);
+                        if (processSpell)
+                        {
+                            myHero.SpellBook.CastSpell(evadeSpell.spellKey, pos.To3D());
+                        }
+                        //CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell, pos), processSpell);
                         return true;
                     }
                 }
@@ -330,19 +348,31 @@ namespace zzzz
                 {
                     if (evadeSpell.isItem)
                     {
-                        CastEvadeSpell(() => myHero.SpellBook.CastSpell(evadeSpell.spellKey), processSpell);
+                        if (processSpell)
+                        {
+                            myHero.SpellBook.CastSpell(evadeSpell.spellKey);
+                        }
+                        //CastEvadeSpell(() => myHero.SpellBook.CastSpell(evadeSpell.spellKey), processSpell);
                         return true;
                     }
 
                     if (evadeSpell.castType == CastType.Target)
                     {
-                        CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell, myHero), processSpell);
+                        if (processSpell)
+                        {
+                            myHero.SpellBook.CastSpell(evadeSpell.spellKey, myHero);
+                        }
+                       // CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell, myHero), processSpell);
                         return true;
                     }
 
                     if (evadeSpell.castType == CastType.Self)
                     {
-                        CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell), processSpell);
+                        if (processSpell)
+                        {
+                            myHero.SpellBook.CastSpell(evadeSpell.spellKey);
+                        }
+                        //CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell), processSpell);
                         return true;
                     }
                 }
@@ -353,7 +383,11 @@ namespace zzzz
                         var posInfo = EvadeHelper.GetBestPosition();
                         if (posInfo != null)
                         {
-                            CastEvadeSpell(() => myHero.SpellBook.CastSpell(evadeSpell.spellKey), processSpell);
+                            if (processSpell)
+                            {
+                                myHero.SpellBook.CastSpell(evadeSpell.spellKey);
+                            }
+                            //CastEvadeSpell(() => myHero.SpellBook.CastSpell(evadeSpell.spellKey), processSpell);
                             DelayAction.Add(5, () => EvadeCommand.MoveTo(posInfo.position));
                             return true;
                         }
@@ -365,7 +399,11 @@ namespace zzzz
                             var posInfo = EvadeHelper.GetBestPosition();
                             if (posInfo != null)
                             {
-                                CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell), processSpell);
+                                if (processSpell)
+                                {
+                                    myHero.SpellBook.CastSpell(evadeSpell.spellKey);
+                                }
+                                //CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell), processSpell);
                                 DelayAction.Add(5, () => EvadeCommand.MoveTo(posInfo.position));
                                 return true;
                             }
@@ -376,7 +414,11 @@ namespace zzzz
                             var posInfo = EvadeHelper.GetBestPosition();
                             if (posInfo != null)
                             {
-                                CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell, posInfo.position), processSpell);
+                                if (processSpell)
+                                {
+                                    myHero.SpellBook.CastSpell(evadeSpell.spellKey, posInfo.position.To3D());
+                                }
+                                //CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell, posInfo.position), processSpell);
                                 DelayAction.Add(5, () => EvadeCommand.MoveTo(posInfo.position));
                                 return true;
                             }
@@ -415,7 +457,7 @@ namespace zzzz
                 return false;
 
 
-            if (Evade.mainMenu["DodgeSkillShots"].As<MenuKeyBind>().Enabled)
+            if (ObjectCache.menuCache.cache["DodgeSkillShots"].As<MenuKeyBind>().Enabled)
             {
                 if (Evade.lastPosInfo.undodgeableSpells.Contains(spell.spellID)
                 && ObjectCache.myHeroCache.serverPos2D.InSkillShot(spell, ObjectCache.myHeroCache.boundingRadius))

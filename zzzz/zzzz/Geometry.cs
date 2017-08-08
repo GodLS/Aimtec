@@ -9,7 +9,7 @@ using Aimtec.SDK.Util.ThirdParty;
 using System.Drawing;
 namespace zzzz
 {
-    public static class Geometry
+    public class Geometry
     {
         private const int CircleLineSegmentN = 22;
         public class Polygon

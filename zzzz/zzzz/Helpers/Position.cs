@@ -154,9 +154,9 @@ namespace zzzz
         {
             float posValue = 0;
 
-            if (Evade.menu["PreventDodgingNearEnemy"].As<MenuBool>().Enabled)
+            if (ObjectCache.menuCache.cache["PreventDodgingNearEnemy"].As<MenuBool>().Enabled)
             {
-                var minComfortDistance = Evade.bufferMenu["MinComfortZone"].As<MenuSlider>().Value;
+                var minComfortDistance = ObjectCache.menuCache.cache["MinComfortZone"].As<MenuSlider>().Value;
 
                 foreach (var hero in GameObjects.EnemyHeroes)
                 {
@@ -180,7 +180,7 @@ namespace zzzz
         {
             float posValue = pos.Distance(Game.CursorPos.To2D());
 
-            if (Evade.miscMenu["PreventDodgingUnderTower"].As<MenuBool>().Enabled)
+            if (ObjectCache.menuCache.cache["PreventDodgingUnderTower"].As<MenuBool>().Enabled)
             {
                 var turretRange = 875 + ObjectCache.myHeroCache.boundingRadius;
                 var distanceToTurrets = pos.GetDistanceToTurrets();

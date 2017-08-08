@@ -82,7 +82,7 @@ namespace zzzz
 
         private void SetPing(int ping)
         {
-            Evade.bufferMenu["ExtraPingBuffer"].As<MenuSlider>().Value = ping;
+            ObjectCache.menuCache.cache["ExtraPingBuffer"].As<MenuSlider>().Value = ping;
         }
 
         private void Game_OnGameUpdate()

@@ -42,7 +42,7 @@ namespace zzzz
             try
             {
                 // fix
-                var extraDelayBuffer = Evade.bufferMenu["ExtraPingBuffer"].As<MenuSlider>().Value;
+                var extraDelayBuffer = ObjectCache.menuCache.cache["ExtraPingBuffer"].As<MenuSlider>().Value;
                 serverPos2D = hero.ServerPosition.To2D(); //CalculatedPosition.GetPosition(hero, Game.Ping);
                 serverPos2DExtra = EvadeUtils.GetGamePosition(hero, Game.Ping + extraDelayBuffer);
                 serverPos2DPing = EvadeUtils.GetGamePosition(hero, Game.Ping);
@@ -61,83 +61,86 @@ namespace zzzz
         }
     }
 
-    //public class MenuCache
-    //{
-    //    public Menu menu;
-    //    public Dictionary<string, MenuComponent> cache = new Dictionary<string, MenuComponent>();
+    public class MenuCache
+    {
+        public Menu menu;
+        public Dictionary<string, MenuComponent> cache = new Dictionary<string, MenuComponent>();
 
-    //    public MenuCache(Menu menu)
-    //    {
-    //        this.menu = menu;
+        public MenuCache(Menu menu)
+        {
+            this.menu = menu;
 
-    //        AddMenuToCache(menu);
-    //    }
+            AddMenuToCache(menu);
+        }
 
-    //    public void AddMenuToCache(Menu newMenu)
-    //    {
-    //        foreach (var item in ReturnAllItems(newMenu))
-    //        {
-    //            AddMenuComponentToCache(item);
-    //        }
-    //    }
+        public void AddMenuToCache(Menu newMenu)
+        {
+            foreach (var item in ReturnAllItems(newMenu))
+            {
+                AddMenuComponentToCache(item);
+            }
+        }
 
-    //    public void AddMenuComponentToCache(MenuComponent item)
-    //    {
-    //        if (item != null && !cache.ContainsKey(item.InternalName))
-    //        {
-    //            cache.Add(item.InternalName, item);
-    //        }
-    //    }
+        public void AddMenuComponentToCache(MenuComponent item)
+        {
+            if (item != null && !cache.ContainsKey(item.InternalName))
+            {
+                cache.Add(item.InternalName, item);
+            }
+        }
 
-    //    //public static List<MenuItem> ReturnAllItems(Menu menu)
-    //    //{
-    //    //    List<MenuItem> menuList = new List<MenuItem>();
+        //public static List<MenuItem> ReturnAllItems(Menu menu)
+        //{
+        //    List<MenuItem> menuList = new List<MenuItem>();
 
-    //    //    menuList.AddRange(menu.Items);
+        //    menuList.AddRange(menu.Items);
 
-    //    //    foreach (var submenu in menu.Children)
-    //    //    {
-    //    //        menuList.AddRange(ReturnAllItems(submenu));
-    //    //    }
+        //    foreach (var submenu in menu.Children)
+        //    {
+        //        menuList.AddRange(ReturnAllItems(submenu));
+        //    }
 
-    //    //    return menuList;
-    //    //}
+        //    return menuList;
+        //}
 
-    //    public static List<MenuComponent> ReturnAllItems(Menu menu)
-    //    {
-    //        List<MenuComponent> menuList = new List<MenuComponent>();
+        public static List<MenuComponent> ReturnAllItems(Menu menu)
+        {
+            List<MenuComponent> menuList = new List<MenuComponent>();
+            foreach (var item in menu.Children.Values)
+            {
+                if (item != null)
+                {
+                    Console.WriteLine(item.InternalName);
+                    menuList.Add(item);
+                }
 
-    //        menuList.AddRange(menu.OfType<MenuComponent>());
+                var asmenu = item as Menu;
 
-    //        foreach (var submenu in menu.)
-    //        {
-    //            menuList.AddRange(ReturnAllItems(submenu));
-    //        }
-    //        //if (menu != null)
-    //        //{
-    //        //    foreach (MenuComponent item in Evade.menu)
-    //        //    {
-    //        //        menuList.Add(item);
-    //        //    }
-    //        //    //foreach (MenuComponent item in menu)
-    //        //    //{
-    //        //    //    if (item != null)
-    //        //    //    {
-    //        //    //        menuList.Add(item);
-    //        //    //    }
-    //        //    //}
-    //        //}
-    //        //menuList.AddRange(menu.);
+                if (asmenu == null)
+                {
+                    continue;
+                }
 
-    //        //foreach (var submenu in menu.Children)
-    //        //{
-    //        //    menuList.AddRange(ReturnAllItems(submenu));
-    //        //}
+                foreach (var item2 in asmenu.Children.Values)
+                {
+                    if (item2 == item)
+                        continue;
 
-    //        return menuList;
-    //        // return new List<MenuComponent>(0);
-    //    }
-    //}
+                    if (item2 != null)
+                    {
+                        Console.WriteLine(item2.InternalName);
+                        menuList.Add(item2);
+                    }
+
+                }
+            }
+            // menuList.AddRange(menu.OfType<MenuComponent>());
+
+
+
+            return menuList;
+        }
+    }
 
     public static class ObjectCache
     {
@@ -146,7 +149,7 @@ namespace zzzz
         private static Obj_AI_Hero myHero => ObjectManager.GetLocalPlayer();
 
         public static HeroInfo myHeroCache = new HeroInfo(myHero);
-        //public static MenuCache menuCache = new MenuCache(Evade.menu);
+        public static MenuCache menuCache = new MenuCache(Evade.menu);
 
         public static float gamePing = 0;
 

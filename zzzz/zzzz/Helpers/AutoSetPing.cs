@@ -130,11 +130,11 @@ namespace zzzz
 
         private void Game_OnUpdate(EventArgs args)
         {
-            if (Evade.menu["TestSkillshotDelay"].As<MenuBool>().Enabled)
+            if (ObjectCache.menuCache.cache["TestSkillshotDelay"].As<MenuBool>().Enabled)
             {
                 testSkillshotDelayStart = EvadeUtils.TickCount;
                 testSkillshotDelayOn = true;
-                Evade.menu["TestSkillshotDelay"].As<MenuBool>().Value = false;
+                ObjectCache.menuCache.cache["TestSkillshotDelay"].As<MenuBool>().Value = false;
             }
 
             if (testSkillshotDelayOn && SpellDetector.spells.Count() > 0)
@@ -154,7 +154,7 @@ namespace zzzz
             float moveTime = 1000 * distance / myHero.MoveSpeed;
             //Console.WriteLine("Extra Delay: " + moveTime);
 
-            if (Evade.menu["AutoSetPingOn"].As<MenuBool>().Value == false)
+            if (ObjectCache.menuCache.cache["AutoSetPingOn"].As<MenuBool>().Value == false)
             {
                 return;
             }
@@ -179,7 +179,7 @@ namespace zzzz
 
         private void Hero_OnNewPath(Obj_AI_Base hero, Obj_AI_BaseNewPathEventArgs args)
         {
-            if (Evade.menu["AutoSetPingOn"].As<MenuBool>().Value == false)
+            if (ObjectCache.menuCache.cache["AutoSetPingOn"].As<MenuBool>().Value == false)
             {
                 return;
             }
@@ -268,17 +268,17 @@ namespace zzzz
 
                                 if (maxExtraDelayTime == 0)
                                 {
-                                    maxExtraDelayTime = Evade.bufferMenu["ExtraPingBuffer"].As<MenuSlider>().Value;
+                                    maxExtraDelayTime = ObjectCache.menuCache.cache["ExtraPingBuffer"].As<MenuSlider>().Value;
                                 }
 
                                 if (numExtraDelayTime % 100 == 0)
                                 {
                                     pingList.Sort();
 
-                                    var percentile = Evade.menu["AutoSetPercentile"].As<MenuSlider>().Value;
+                                    var percentile = ObjectCache.menuCache.cache["AutoSetPercentile"].As<MenuSlider>().Value;
                                     int percentIndex = (int)Math.Floor(pingList.Count() * (percentile / 100f)) - 1;
                                     maxExtraDelayTime = Math.Max(pingList.ElementAt(percentIndex) - Game.Ping, 0);
-                                    Evade.bufferMenu["ExtraPingBuffer"].As<MenuSlider>().Value =
+                                    ObjectCache.menuCache.cache["ExtraPingBuffer"].As<MenuSlider>().Value =
                                         (int)maxExtraDelayTime; //(new MenuSlider((int)maxExtraDelayTime, 0, 200));
 
                                     pingList.Clear();
