@@ -1,18 +1,15 @@
 ﻿using System;
-using Aimtec.SDK.Extensions;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
-//using SharpDX;
-using Color = System.Drawing.Color;
+using Aimtec.SDK.Extensions;
 using Aimtec.SDK.Menu;
 using Aimtec.SDK.Menu.Components;
 using Aimtec.SDK.Util.Cache;
+using zzzz.SpecialSpells;
+//using SharpDX;
 
 namespace zzzz
 {
@@ -25,11 +22,9 @@ namespace zzzz
     internal class SpellDetector
     {
         public delegate void OnProcessDetectedSpellsHandler();
-        public static event OnProcessDetectedSpellsHandler OnProcessDetectedSpells;
 
         public delegate void OnProcessSpecialSpellHandler(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args,
             SpellData spellData, SpecialSpellEventArgs specialSpellArgs);
-        public static event OnProcessSpecialSpellHandler OnProcessSpecialSpell;
 
         //public static event OnDeleteSpellHandler OnDeleteSpell;
 
@@ -47,22 +42,20 @@ namespace zzzz
 
         public static Dictionary<string, SpellData> windupSpells = new Dictionary<string, SpellData>();
 
-        private static int spellIDCount = 0;
+        private static int spellIDCount;
 
-        private static Obj_AI_Hero myHero { get { return ObjectManager.GetLocalPlayer(); } }
-
-        public static float lastCheckTime = 0;
-        public static float lastCheckSpellCollisionTime = 0;
+        public static float lastCheckTime;
+        public static float lastCheckSpellCollisionTime;
 
         //public static Menu menu;
         public static Menu trapMenu;
 
         public SpellDetector(Menu mainMenu)
         {
-            MissileClient.OnCreate += SpellMissile_OnCreate;
-            MissileClient.OnDestroy += SpellMissile_OnDelete;
+            GameObject.OnCreate += SpellMissile_OnCreate;
+            GameObject.OnDestroy += SpellMissile_OnDelete;
 
-            Obj_AI_Hero.OnProcessSpellCast += Game_ProcessSpell;
+            Obj_AI_Base.OnProcessSpellCast += Game_ProcessSpell;
 
             Game.OnUpdate += Game_OnGameUpdate;
 
@@ -76,19 +69,23 @@ namespace zzzz
             InitChannelSpells();
         }
 
+        private static Obj_AI_Hero myHero => ObjectManager.GetLocalPlayer();
+        public static event OnProcessDetectedSpellsHandler OnProcessDetectedSpells;
+        public static event OnProcessSpecialSpellHandler OnProcessSpecialSpell;
+
         private void SpellMissile_OnCreate(GameObject obj)
         {
             if (!obj.IsValid || obj.Type != GameObjectType.MissileClient)
                 return;
 
-            MissileClient missile = (MissileClient)obj;
+            var missile = (MissileClient) obj;
 
             SpellData spellData;
 
             if (missile.SpellCaster != null && missile.SpellCaster.CheckTeam() &&
-                missile.SpellData.Name != null && onMissileSpells.TryGetValue(missile.SpellData.Name.ToLower(), out spellData)
+                missile.SpellData.Name != null &&
+                onMissileSpells.TryGetValue(missile.SpellData.Name.ToLower(), out spellData)
                 && missile.StartPosition != null && missile.EndPosition != null)
-            {
                 if (missile.StartPosition.Distance(myHero.Position) < spellData.range + 1000)
                 {
                     var hero = missile.SpellCaster;
@@ -103,40 +100,32 @@ namespace zzzz
 
                         var objectAssigned = false;
 
-                        foreach (KeyValuePair<int, Spell> entry in detectedSpells)
+                        foreach (var entry in detectedSpells)
                         {
-                            Spell spell = entry.Value;
+                            var spell = entry.Value;
 
                             var dir = (missile.EndPosition.To2D() - missile.StartPosition.To2D()).Normalized();
 
-                            if (spell.info.missileName.ToLower() == missile.SpellData.Name.ToLower()) // todo: fix urf spells
-                            {
+                            if (spell.info.missileName.ToLower() ==
+                                missile.SpellData.Name.ToLower()) // todo: fix urf spells
                                 if (spell.heroID == hero.NetworkId && dir.AngleBetween(spell.direction) < 10)
-                                {
                                     if (spell.info.isThreeWay == false && spell.info.isSpecial == false)
                                     {
                                         spell.spellObject = obj;
                                         objectAssigned = true;
                                         break;
                                     }
-                                }
-                            }
                         }
 
                         if (objectAssigned == false)
-                        {
                             CreateSpellData(hero, missile.StartPosition, missile.EndPosition, spellData, obj);
-                        }
                     }
                     else
                     {
                         if (ObjectCache.menuCache.cache["DodgeFOWSpells"].As<MenuBool>().Enabled)
-                        {
                             CreateSpellData(hero, missile.StartPosition, missile.EndPosition, spellData, obj);
-                        }
                     }
                 }
-            }
         }
 
         private void SpellMissile_OnDelete(GameObject obj)
@@ -144,25 +133,19 @@ namespace zzzz
             if (!obj.IsValid || obj.Type != GameObjectType.MissileClient)
                 return;
 
-            MissileClient missile = (MissileClient)obj;
+            var missile = (MissileClient) obj;
 
             foreach (var spell in spells.Values.ToList().Where(
-                    s => (s.spellObject != null && s.spellObject.NetworkId == obj.NetworkId))) //isAlive
-            {
+                s => s.spellObject != null && s.spellObject.NetworkId == obj.NetworkId)) //isAlive
                 if (!spell.info.name.Contains("_trap"))
-                {
                     DelayAction.Add(1, () => DeleteSpell(spell.spellID));
-                }
-            }
         }
 
         public void RemoveNonDangerousSpells()
         {
             foreach (var spell in spells.Values.ToList().Where(
-                    s =>  (s != null && s.GetSpellDangerLevel() < 3)))
-            {
+                s => s != null && s.GetSpellDangerLevel() < 3))
                 DelayAction.Add(1, () => DeleteSpell(spell.spellID));
-            }
         }
 
         private void Game_ProcessSpell(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args)
@@ -171,10 +154,9 @@ namespace zzzz
             {
                 SpellData spellData;
                 if (hero.CheckTeam() && onProcessSpells.TryGetValue(args.SpellData.Name.ToLower(), out spellData))
-                {
                     if (spellData.usePackets == false)
                     {
-                        var specialSpellArgs = new SpecialSpellEventArgs { spellData = spellData };
+                        var specialSpellArgs = new SpecialSpellEventArgs {spellData = spellData};
                         OnProcessSpecialSpell?.Invoke(hero, args, spellData, specialSpellArgs);
 
                         // optional update from specialSpellArgs
@@ -182,36 +164,29 @@ namespace zzzz
 
                         if (specialSpellArgs.noProcess == false && spellData.noProcess == false)
                         {
-                            bool foundMissile = false;
+                            var foundMissile = false;
 
                             if (spellData.isThreeWay == false && spellData.isSpecial == false)
-                            {
-                                foreach (KeyValuePair<int, Spell> entry in detectedSpells)
+                                foreach (var entry in detectedSpells)
                                 {
-                                    Spell spell = entry.Value;
+                                    var spell = entry.Value;
 
                                     var dir = (args.End.To2D() - args.Start.To2D()).Normalized();
                                     if (spell.spellObject != null)
-                                    {
-                                        if (spell.info.spellName.ToLower() == args.SpellData.Name.ToLower()) // todo: fix urf spells
-                                        {
-                                            if (spell.heroID == hero.NetworkId && dir.AngleBetween(spell.direction) < 10)
+                                        if (spell.info.spellName.ToLower() ==
+                                            args.SpellData.Name.ToLower()) // todo: fix urf spells
+                                            if (spell.heroID == hero.NetworkId &&
+                                                dir.AngleBetween(spell.direction) < 10)
                                             {
                                                 foundMissile = true;
                                                 break;
                                             }
-                                        }
-                                    }
                                 }
-                            }
 
                             if (foundMissile == false)
-                            {
                                 CreateSpellData(hero, hero.ServerPosition, args.End, spellData);
-                            }
                         }
                     }
-                }
             }
             catch (Exception e)
             {
@@ -242,26 +217,20 @@ namespace zzzz
                 var endTick = 0f;
 
                 if (spellType == SpellType.None)
-                {
                     spellType = spellData.spellType;
-                }
 
                 if (spellData.fixedRange) //for diana q
-                {
                     if (endPosition.Distance(startPosition) > spellData.range)
                         endPosition = startPosition + direction * spellData.range;
-                }
 
                 if (spellType == SpellType.Line)
                 {
-                    endTick = spellData.spellDelay + (spellData.range / spellData.projectileSpeed) * 1000;
+                    endTick = spellData.spellDelay + spellData.range / spellData.projectileSpeed * 1000;
                     endPosition = startPosition + direction * spellData.range;
 
                     if (spellData.fixedRange) // for all lines
-                    {
                         if (endPosition.Distance(startPosition) < spellData.range)
                             endPosition = startPosition + direction * spellData.range;
-                    }
 
                     if (endPosition.Distance(startPosition) > spellData.range)
                         endPosition = startPosition + direction * spellData.range;
@@ -269,7 +238,7 @@ namespace zzzz
                     if (spellData.useEndPosition)
                     {
                         var range = endPosition.Distance(startPosition);
-                        endTick = spellData.spellDelay + (range / spellData.projectileSpeed) * 1000;
+                        endTick = spellData.spellDelay + range / spellData.projectileSpeed * 1000;
                     }
 
                     if (obj != null)
@@ -291,12 +260,8 @@ namespace zzzz
                         endTick = endTick + 1000 * startPosition.Distance(endPosition) / spellData.projectileSpeed;
 
                         if (spellData.spellType == SpellType.Line && spellData.hasEndExplosion)
-                        {
                             if (!spellData.useEndPosition)
-                            {
                                 endPosition = startPosition + direction * spellData.range;
-                            }
-                        }
                     }
                 }
                 else if (spellType == SpellType.Arc)
@@ -315,13 +280,9 @@ namespace zzzz
                         endPosition = startPosition + direction * spellData.range;
 
                     if (spellData.projectileSpeed == 0 && hero != null)
-                    {
                         endPosition = hero.ServerPosition.To2D();
-                    }
                     else if (spellData.projectileSpeed > 0)
-                    {
                         endTick = endTick + 1000 * startPosition.Distance(endPosition) / spellData.projectileSpeed;
-                    }
                 }
                 else
                 {
@@ -342,7 +303,7 @@ namespace zzzz
 
                 endTick += extraEndTick;
 
-                Spell newSpell = new Spell();
+                var newSpell = new Spell();
                 newSpell.startTime = EvadeUtils.TickCount;
                 newSpell.endTime = EvadeUtils.TickCount + endTick;
                 newSpell.startPos = startPosition;
@@ -355,7 +316,7 @@ namespace zzzz
 
                 if (spellType == SpellType.Cone)
                 {
-                    newSpell.radius = 100 + (newSpell.radius * 3); // for now.. eh
+                    newSpell.radius = 100 + newSpell.radius * 3; // for now.. eh
                     newSpell.cnStart = startPosition + direction;
                     newSpell.cnLeft = endPosition + direction.Perpendicular() * newSpell.radius;
                     newSpell.cnRight = endPosition - direction.Perpendicular() * newSpell.radius;
@@ -370,12 +331,10 @@ namespace zzzz
                     newSpell.projectileID = obj.NetworkId;
                 }
 
-                int spellID = CreateSpell(newSpell, processSpell);
+                var spellID = CreateSpell(newSpell, processSpell);
 
                 if (extraEndTick != 1337f) // traps
-                {
-                    DelayAction.Add((int)(endTick + spellData.extraEndTime), () => DeleteSpell(spellID));
-                }
+                    DelayAction.Add((int) (endTick + spellData.extraEndTime), () => DeleteSpell(spellID));
             }
         }
 
@@ -401,49 +360,39 @@ namespace zzzz
         public static void UpdateSpells()
         {
             foreach (var spell in detectedSpells.Values)
-            {
                 spell.UpdateSpellInfo();
-            }
         }
 
         private void CheckSpellEndTime()
         {
-            foreach (KeyValuePair<int, Spell> entry in detectedSpells)
+            foreach (var entry in detectedSpells)
             {
                 var spell = entry.Value;
                 if (spell.info.spellName.Contains("_trap"))
                     continue;
 
                 foreach (var hero in ObjectManager.Get<Obj_AI_Hero>().Where(e => e.IsEnemy))
-                {
                     if (hero.IsDead && spell.heroID == hero.NetworkId)
-                    {
                         if (spell.spellObject == null)
                             DelayAction.Add(1, () => DeleteSpell(entry.Key));
-                    }
-                }
 
                 if (spell.endTime + spell.info.extraEndTime < EvadeUtils.TickCount
                     || CanHeroWalkIntoSpell(spell) == false)
-                {
                     DelayAction.Add(1, () => DeleteSpell(entry.Key));
-                }
             }
         }
 
         private static void CheckSpellCollision()
         {
             if (!ObjectCache.menuCache.cache["CheckSpellCollision"].As<MenuBool>().Enabled)
-            {
                 return;
-            }
 
-            foreach (KeyValuePair<int, Spell> entry in detectedSpells)
+            foreach (var entry in detectedSpells)
             {
                 if (entry.Value == null)
                     return;
 
-                Spell spell = entry.Value;
+                var spell = entry.Value;
                 if (spell == null)
                     return;
 
@@ -454,9 +403,7 @@ namespace zzzz
 
                     if (spell.currentSpellPosition.Distance(collisionObject.ServerPosition) <
                         collisionObject.BoundingRadius + spell.radius)
-                    {
                         DelayAction.Add(1, () => DeleteSpell(entry.Key));
-                    }
                 }
             }
         }
@@ -465,12 +412,13 @@ namespace zzzz
         {
             if (ObjectCache.menuCache.cache["AdvancedSpellDetection"].As<MenuBool>().Enabled)
             {
-                Vector2 heroPos = myHero.Position.To2D();
+                var heroPos = myHero.Position.To2D();
                 var extraDist = myHero.Distance(ObjectCache.myHeroCache.serverPos2D);
 
                 if (spell.spellType == SpellType.Line)
                 {
-                    var walkRadius = ObjectCache.myHeroCache.moveSpeed * (spell.endTime - EvadeUtils.TickCount) / 1000 + ObjectCache.myHeroCache.boundingRadius + spell.info.radius + extraDist + 10;
+                    var walkRadius = ObjectCache.myHeroCache.moveSpeed * (spell.endTime - EvadeUtils.TickCount) / 1000 +
+                                     ObjectCache.myHeroCache.boundingRadius + spell.info.radius + extraDist + 10;
                     var spellPos = spell.currentSpellPosition;
                     var spellEndPos = spell.GetSpellEndPosition();
 
@@ -478,15 +426,13 @@ namespace zzzz
 
                     return projection.SegmentPoint.Distance(heroPos) <= walkRadius;
                 }
-                else if (spell.spellType == SpellType.Circular)
+                if (spell.spellType == SpellType.Circular)
                 {
-                    var walkRadius = ObjectCache.myHeroCache.moveSpeed * (spell.endTime - EvadeUtils.TickCount) / 1000 + ObjectCache.myHeroCache.boundingRadius + spell.info.radius + extraDist + 10;
+                    var walkRadius = ObjectCache.myHeroCache.moveSpeed * (spell.endTime - EvadeUtils.TickCount) / 1000 +
+                                     ObjectCache.myHeroCache.boundingRadius + spell.info.radius + extraDist + 10;
 
                     if (heroPos.Distance(spell.endPos) < walkRadius)
-                    {
                         return true;
-                    }
-
                 }
                 else if (spell.spellType == SpellType.Arc)
                 {
@@ -494,13 +440,11 @@ namespace zzzz
                     var midPoint = spell.startPos + spell.direction * (spellRange / 2);
                     var arcRadius = spell.info.radius * (1 + spellRange / 100);
 
-                    var walkRadius = ObjectCache.myHeroCache.moveSpeed * (spell.endTime - EvadeUtils.TickCount) / 1000 + ObjectCache.myHeroCache.boundingRadius + arcRadius + extraDist + 10;
+                    var walkRadius = ObjectCache.myHeroCache.moveSpeed * (spell.endTime - EvadeUtils.TickCount) / 1000 +
+                                     ObjectCache.myHeroCache.boundingRadius + arcRadius + extraDist + 10;
 
                     if (heroPos.Distance(midPoint) < walkRadius)
-                    {
                         return true;
-                    }
-
                 }
 
                 return false;
@@ -512,9 +456,9 @@ namespace zzzz
 
         private static void AddDetectedSpells()
         {
-            bool spellAdded = false;
+            var spellAdded = false;
 
-            foreach (KeyValuePair<int, Spell> entry in detectedSpells)
+            foreach (var entry in detectedSpells)
             {
                 var spell = entry.Value;
                 if (spell.info.spellName.Contains("_trap"))
@@ -523,7 +467,9 @@ namespace zzzz
                 }
                 else
                 {
-                    EvadeHelper.fastEvadeMode = Evade.spellMenu[spell.info.charName + spell.info.spellName + "Settings"][spell.info.spellName + "FastEvade"].As<MenuBool>().Value;
+                    EvadeHelper.fastEvadeMode =
+                        Evade.spellMenu[spell.info.charName + spell.info.spellName + "Settings"][
+                            spell.info.spellName + "FastEvade"].As<MenuBool>().Value;
                 }
 
                 float evadeTime, spellHitTime;
@@ -532,83 +478,73 @@ namespace zzzz
                 spell.spellHitTime = spellHitTime;
                 spell.evadeTime = evadeTime;
 
-                var extraDelay = ObjectCache.gamePing + ObjectCache.menuCache.cache["ExtraPingBuffer"].As<MenuSlider>().Value;
+                var extraDelay = ObjectCache.gamePing + ObjectCache.menuCache.cache["ExtraPingBuffer"].As<MenuSlider>()
+                                     .Value;
 
                 if (spell.spellHitTime - extraDelay < 1500 && CanHeroWalkIntoSpell(spell))
-                //if(true)
+                    //if(true)
                 {
-                    Spell newSpell = spell;
-                    int spellID = spell.spellID;
+                    var newSpell = spell;
+                    var spellID = spell.spellID;
 
                     if (!drawSpells.ContainsKey(spell.spellID))
-                    {
                         drawSpells.Add(spellID, newSpell);
-                    }
 
                     //var spellFlyTime = Evade.GetTickCount - spell.startTime;
                     if (spellHitTime < ObjectCache.menuCache.cache["SpellDetectionTime"].As<MenuSlider>().Value
-                        && !Evade.spellMenu[spell.info.charName + spell.info.spellName + "Settings"][spell.info.spellName + "FastEvade"].As<MenuBool>().Enabled)
-                    {
+                        && !Evade.spellMenu[spell.info.charName + spell.info.spellName + "Settings"][
+                            spell.info.spellName + "FastEvade"].As<MenuBool>().Enabled)
                         continue;
-                    }
 
-                    if (EvadeUtils.TickCount - spell.startTime < ObjectCache.menuCache.cache["ReactionTime"].As<MenuSlider>().Value
-                        && !Evade.spellMenu[spell.info.charName + spell.info.spellName + "Settings"][spell.info.spellName + "FastEvade"].As<MenuBool>().Enabled)
-                    {
+                    if (EvadeUtils.TickCount - spell.startTime <
+                        ObjectCache.menuCache.cache["ReactionTime"].As<MenuSlider>().Value
+                        && !Evade.spellMenu[spell.info.charName + spell.info.spellName + "Settings"][
+                            spell.info.spellName + "FastEvade"].As<MenuBool>().Enabled)
                         continue;
-                    }
 
                     var dodgeInterval = ObjectCache.menuCache.cache["DodgeInterval"].As<MenuSlider>().Value;
                     if (Evade.lastPosInfo != null && dodgeInterval > 0)
                     {
                         var timeElapsed = EvadeUtils.TickCount - Evade.lastPosInfo.timestamp;
 
-                        if (dodgeInterval > timeElapsed && !Evade.spellMenu[spell.info.charName + spell.info.spellName + "Settings"][spell.info.spellName + "FastEvade"].As<MenuBool>().Enabled)
-                        {
-                            //var delay = dodgeInterval - timeElapsed;
-                            //DelayAction.Add((int)delay, () => SpellDetector_OnProcessDetectedSpells());
+                        if (dodgeInterval > timeElapsed &&
+                            !Evade.spellMenu[spell.info.charName + spell.info.spellName + "Settings"][
+                                spell.info.spellName + "FastEvade"].As<MenuBool>().Enabled)
                             continue;
-                        }
                     }
 
                     if (!spells.ContainsKey(spell.spellID))
-                    {
                         if (!(Evade.isDodgeDangerousEnabled() && newSpell.GetSpellDangerLevel() < 3)
-                            && Evade.spellMenu[spell.info.charName + spell.info.spellName + "Settings"][newSpell.info.spellName + "DodgeSpell"].As<MenuBool>().Enabled)
+                            && Evade.spellMenu[spell.info.charName + spell.info.spellName + "Settings"][
+                                newSpell.info.spellName + "DodgeSpell"].As<MenuBool>().Enabled)
                         {
                             if (newSpell.spellType == SpellType.Circular
                                 && ObjectCache.menuCache.cache["DodgeCircularSpells"].As<MenuBool>().Value == false)
-                            {
-                                //return spellID;
                                 continue;
-                            }
 
-                            int healthThreshold = Evade.spellMenu[spell.info.charName + spell.info.spellName + "Settings"][spell.info.spellName + "DodgeIgnoreHP"].As<MenuSlider>().Value;
+                            var healthThreshold =
+                                Evade.spellMenu[spell.info.charName + spell.info.spellName + "Settings"][
+                                    spell.info.spellName + "DodgeIgnoreHP"].As<MenuSlider>().Value;
                             if (myHero.HealthPercent() <= healthThreshold)
                             {
                                 spells.Add(spellID, newSpell);
                                 spellAdded = true;
                             }
                         }
-                    }
 
                     if (ObjectCache.menuCache.cache["CheckSpellCollision"].As<MenuBool>().Enabled
                         && spell.predictedEndPos != Vector2.Zero)
-                    {
                         spellAdded = false;
-                    }
                 }
             }
 
             if (spellAdded)
-            {
                 OnProcessDetectedSpells?.Invoke();
-            }
         }
 
         private static int CreateSpell(Spell newSpell, bool processSpell = true)
         {
-            int spellID = spellIDCount++;
+            var spellID = spellIDCount++;
             newSpell.spellID = spellID;
 
             newSpell.UpdateSpellInfo();
@@ -637,11 +573,11 @@ namespace zzzz
 
         public static List<int> GetSpellList()
         {
-            List<int> spellList = new List<int>();
+            var spellList = new List<int>();
 
-            foreach (KeyValuePair<int, Spell> entry in SpellDetector.spells)
+            foreach (var entry in spells)
             {
-                Spell spell = entry.Value;
+                var spell = entry.Value;
                 spellList.Add(spell.spellID);
             }
 
@@ -650,29 +586,27 @@ namespace zzzz
 
         public static int GetHighestDetectedSpellID()
         {
-            int highest = 0;
+            var highest = 0;
 
-            foreach (var spell in SpellDetector.spells)
-            {
+            foreach (var spell in spells)
                 highest = Math.Max(highest, spell.Key);
-            }
 
             return highest;
         }
 
         public static float GetLowestEvadeTime(out Spell lowestSpell)
         {
-            float lowest = float.MaxValue;
+            var lowest = float.MaxValue;
             lowestSpell = null;
 
-            foreach (KeyValuePair<int, Spell> entry in SpellDetector.spells)
+            foreach (var entry in spells)
             {
-                Spell spell = entry.Value;
+                var spell = entry.Value;
 
                 if (spell.spellHitTime != float.MinValue)
                 {
                     //Console.WriteLine("spellhittime: " + spell.spellHitTime);
-                    lowest = Math.Min(lowest, (spell.spellHitTime - spell.evadeTime));
+                    lowest = Math.Min(lowest, spell.spellHitTime - spell.evadeTime);
                     lowestSpell = spell;
                 }
             }
@@ -682,12 +616,11 @@ namespace zzzz
 
         public static Spell GetMostDangerousSpell(bool hasProjectile = false)
         {
-            int maxDanger = 0;
+            var maxDanger = 0;
             Spell maxDangerSpell = null;
 
-            foreach (Spell spell in SpellDetector.spells.Values)
-            {
-                if (!hasProjectile || (spell.info.projectileSpeed > 0 && spell.info.projectileSpeed != float.MaxValue))
+            foreach (var spell in spells.Values)
+                if (!hasProjectile || spell.info.projectileSpeed > 0 && spell.info.projectileSpeed != float.MaxValue)
                 {
                     var dangerlevel = spell.dangerlevel;
 
@@ -697,7 +630,6 @@ namespace zzzz
                         maxDangerSpell = spell;
                     }
                 }
-            }
 
             return maxDangerSpell;
         }
@@ -726,12 +658,12 @@ namespace zzzz
 
         public static void LoadDummySpell(SpellData spell)
         {
-            string menuName = spell.charName + " (" + spell.spellKey.ToString() + ") Settings";
+            var menuName = spell.charName + " (" + spell.spellKey + ") Settings";
 
             var enableSpell = !spell.defaultOff;
             var isnewSpell = spell.name.Contains("[Beta]");
 
-            Menu newSpellMenu = new Menu(spell.charName + spell.spellName + "Settings", menuName);
+            var newSpellMenu = new Menu(spell.charName + spell.spellName + "Settings", menuName);
 
             //if (isnewSpell)
             //newSpellMenu.SetFontStyle(FontStyle.Regular, Color.SkyBlue);
@@ -745,13 +677,15 @@ namespace zzzz
 
 
             newSpellMenu.Add(whichMenu);
-            newSpellMenu.Add(new MenuSlider(spell.spellName + "SpellRadius", "Spell Radius", (int)spell.radius, (int)spell.radius - 100, (int)spell.radius + 100));
+            newSpellMenu.Add(new MenuSlider(spell.spellName + "SpellRadius", "Spell Radius", (int) spell.radius,
+                (int) spell.radius - 100, (int) spell.radius + 100));
             newSpellMenu.Add(new MenuBool(spell.spellName + "FastEvade", "Force Fast Evade", spell.dangerlevel == 4));
 
-            newSpellMenu.Add(new MenuSlider(spell.spellName + "DodgeIgnoreHP", "Dodge Only Below HP % <=", spell.dangerlevel == 1 ? 90 : 100));
+            newSpellMenu.Add(new MenuSlider(spell.spellName + "DodgeIgnoreHP", "Dodge Only Below HP % <=",
+                spell.dangerlevel == 1 ? 90 : 100));
 
             newSpellMenu.Add(new MenuList(spell.spellName + "DangerLevel", "Danger Level",
-                new[] { "Low", "Normal", "High", "Extreme" }, spell.dangerlevel - 1));
+                new[] {"Low", "Normal", "High", "Extreme"}, spell.dangerlevel - 1));
 
             Evade.spellMenu.Add(newSpellMenu);
 
@@ -772,40 +706,34 @@ namespace zzzz
             il.Emit(OpCodes.Ldloc_0);
             il.Emit(OpCodes.Ret);
 
-            var method = (Func<object>)dynamic.CreateDelegate(typeof(Func<object>));
+            var method = (Func<object>) dynamic.CreateDelegate(typeof(Func<object>));
             return method();
         }
 
         private void LoadSpecialSpell(SpellData spell)
         {
             if (championPlugins.ContainsKey(spell.charName))
-            {
                 championPlugins[spell.charName].LoadSpecialSpell(spell);
-            }
 
             championPlugins["AllChampions"].LoadSpecialSpell(spell);
         }
 
         private void LoadSpecialSpellPlugins()
         {
-            championPlugins.Add("AllChampions", new SpecialSpells.AllChampions());
+            championPlugins.Add("AllChampions", new AllChampions());
 
             foreach (var hero in Evade.devModeOn ? GameObjects.Heroes : GameObjects.EnemyHeroes)
             {
                 var championPlugin = Assembly.GetExecutingAssembly()
                     .GetTypes()
                     .Where(t => t.IsClass && t.Namespace == "zzzz.SpecialSpells"
-                               && t.Name == hero.ChampionName
-                               ).ToList().FirstOrDefault();
+                                && t.Name == hero.ChampionName
+                    ).ToList().FirstOrDefault();
 
                 if (championPlugin != null)
-                {
                     if (!championPlugins.ContainsKey(hero.ChampionName))
-                    {
                         championPlugins.Add(hero.ChampionName,
-                            (ChampionPlugin)NewInstance(championPlugin));
-                    }
-                }
+                            (ChampionPlugin) NewInstance(championPlugin));
             }
         }
 
@@ -816,35 +744,26 @@ namespace zzzz
             foreach (var hero in GameObjects.Heroes.Where(h => h.IsValid))
             {
                 if (hero.IsMe || Evade.devModeOn)
-                {
                     foreach (var spell in SpellWindupDatabase.Spells.Where(
-                        s => (s.charName == hero.ChampionName)))
-                    {
+                        s => s.charName == hero.ChampionName))
                         if (!windupSpells.ContainsKey(spell.spellName))
-                        {
                             windupSpells.Add(spell.spellName, spell);
-                        }
-                    }
-                }
 
                 if (hero.Team != myHero.Team || Evade.devModeOn)
                 {
                     foreach (var spell in SpellDatabase.Spells.Where(
-                        s => (s.charName == hero.ChampionName) || (s.charName == "AllChampions")))
-                    {
+                        s => s.charName == hero.ChampionName || s.charName == "AllChampions"))
                         if (spell.hasTrap && spell.projectileSpeed > 3000)
                         {
                             if (spell.charName == "AllChampions")
                             {
-                                
-                                var spellexists = hero.SpellBook.Spells.Where(s => s != null && s.Name == spell.spellName).FirstOrDefault();
+                                var spellexists = hero.SpellBook.Spells
+                                    .Where(s => s != null && s.Name == spell.spellName).FirstOrDefault();
                                 if (spellexists != null)
                                 {
                                     var slot = spellexists.Slot;
                                     if (slot == SpellSlot.Unknown)
-                                    {
                                         continue;
-                                    }
                                 }
                             }
 
@@ -862,27 +781,29 @@ namespace zzzz
 
                                 LoadSpecialSpell(spell);
 
-                                string menuName = spell.charName + " (" + spell.spellKey.ToString() + ") Settings";
+                                var menuName = spell.charName + " (" + spell.spellKey + ") Settings";
 
                                 var enableSpell = !spell.defaultOff;
                                 var trapSpellName = spell.spellName + "_trap";
 
-                                Menu newSpellMenu = new Menu(spell.charName + trapSpellName + "Settings", menuName);
+                                var newSpellMenu = new Menu(spell.charName + trapSpellName + "Settings", menuName);
                                 newSpellMenu.Add(new MenuBool(trapSpellName + "DrawSpell", "Draw Trap"));
                                 newSpellMenu.Add(new MenuBool(trapSpellName + "DodgeSpell", "Dodge Trap [Beta]",
                                     enableSpell));
-                                newSpellMenu.Add(new MenuSlider(trapSpellName + "SpellRadius", "Trap Radius", (int)spell.radius, (int)spell.radius - 100, (int)spell.radius + 100));
-                                newSpellMenu.Add(new MenuSlider(trapSpellName + "DodgeIgnoreHP", "Dodge Only Below HP % <=", Math.Max(0, spell.dangerlevel - 1) == 1 ? 90 : 100));
-                                newSpellMenu.Add(new MenuList(trapSpellName + "DangerLevel", "Danger Level", new[] { "Low", "Normal", "High" }, Math.Max(0, spell.dangerlevel - 1)));
+                                newSpellMenu.Add(new MenuSlider(trapSpellName + "SpellRadius", "Trap Radius",
+                                    (int) spell.radius, (int) spell.radius - 100, (int) spell.radius + 100));
+                                newSpellMenu.Add(new MenuSlider(trapSpellName + "DodgeIgnoreHP",
+                                    "Dodge Only Below HP % <=", Math.Max(0, spell.dangerlevel - 1) == 1 ? 90 : 100));
+                                newSpellMenu.Add(new MenuList(trapSpellName + "DangerLevel", "Danger Level",
+                                    new[] {"Low", "Normal", "High"}, Math.Max(0, spell.dangerlevel - 1)));
 
                                 trapMenu.Add(newSpellMenu);
                             }
                         }
-                    }
 
 
                     foreach (var spell in SpellDatabase.Spells.Where(
-                        s => (s.charName == hero.ChampionName) || (s.charName == "AllChampions")))
+                        s => s.charName == hero.ChampionName || s.charName == "AllChampions"))
                     {
                         Console.WriteLine(spell.spellName);
                         if (spell.hasTrap && spell.projectileSpeed < 3000 || !spell.hasTrap)
@@ -893,14 +814,13 @@ namespace zzzz
 
                             if (spell.charName == "AllChampions")
                             {
-                                var spellexists = hero.SpellBook.Spells.Where(s => s != null && s.Name == spell.spellName).FirstOrDefault();
+                                var spellexists = hero.SpellBook.Spells
+                                    .Where(s => s != null && s.Name == spell.spellName).FirstOrDefault();
                                 if (spellexists != null)
                                 {
                                     var slot = spellexists.Slot;
                                     if (slot == SpellSlot.Unknown)
-                                    {
                                         continue;
-                                    }
                                 }
                             }
 
@@ -913,29 +833,21 @@ namespace zzzz
                                 onMissileSpells.Add(spell.missileName.ToLower(), spell);
 
                                 if (spell.extraSpellNames != null)
-                                {
-                                    foreach (string spellName in spell.extraSpellNames)
-                                    {
+                                    foreach (var spellName in spell.extraSpellNames)
                                         onProcessSpells.Add(spellName.ToLower(), spell);
-                                    }
-                                }
 
                                 if (spell.extraMissileNames != null)
-                                {
-                                    foreach (string spellName in spell.extraMissileNames)
-                                    {
+                                    foreach (var spellName in spell.extraMissileNames)
                                         onMissileSpells.Add(spellName.ToLower(), spell);
-                                    }
-                                }
 
                                 LoadSpecialSpell(spell);
 
-                                string menuName = spell.charName + " (" + spell.spellKey.ToString() + ") Settings";
+                                var menuName = spell.charName + " (" + spell.spellKey + ") Settings";
 
                                 var enableSpell = !spell.defaultOff;
                                 var isnewSpell = spell.name.Contains("[Beta]") || spell.spellType == SpellType.Cone;
 
-                                Menu newSpellMenu = new Menu(spell.charName + spell.spellName + "Settings", menuName);
+                                var newSpellMenu = new Menu(spell.charName + spell.spellName + "Settings", menuName);
 
                                 //if (isnewSpell)
                                 //    newSpellMenu.SetFontStyle(FontStyle.Regular, Color.SkyBlue);
@@ -945,21 +857,22 @@ namespace zzzz
 
                                 var isBetaDodge = isnewSpell
                                     ? new MenuBool(spell.spellName + "DodgeSpell", "Dodge Spell [Beta]", enableSpell)
-
                                     : new MenuBool(spell.spellName + "DodgeSpell", "Dodge Spell", enableSpell);
 
                                 newSpellMenu.Add(isBetaDodge);
 
-                                newSpellMenu.Add(new MenuSlider(spell.spellName + "SpellRadius", "Spell Radius", (int)spell.radius, (int)spell.radius - 100,
-                                        (int)spell.radius + 100));
+                                newSpellMenu.Add(new MenuSlider(spell.spellName + "SpellRadius", "Spell Radius",
+                                    (int) spell.radius, (int) spell.radius - 100,
+                                    (int) spell.radius + 100));
                                 newSpellMenu.Add(new MenuBool(spell.spellName + "FastEvade", "Force Fast Evade",
                                     spell.dangerlevel == 4));
 
                                 newSpellMenu.Add(new MenuSlider(spell.spellName + "DodgeIgnoreHP",
                                     "Dodge Only Below HP % <=", spell.dangerlevel == 1 ? 90 : 100));
 
-                                newSpellMenu.Add(new MenuList(spell.spellName + "DangerLevel", "Danger Level", new[] { "Low", "Normal", "High", "Extreme" },
-                                        spell.dangerlevel - 1));
+                                newSpellMenu.Add(new MenuList(spell.spellName + "DangerLevel", "Danger Level",
+                                    new[] {"Low", "Normal", "High", "Extreme"},
+                                    spell.dangerlevel - 1));
 
                                 Evade.spellMenu.Add(newSpellMenu);
                             }

@@ -1,61 +1,57 @@
 ﻿using System;
-using Aimtec.SDK.Extensions;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
+using Aimtec.SDK.Extensions;
+
 //using SharpDX;
 
 namespace zzzz
 {
     public class ObjectTrackerInfo
     {
-        public GameObject obj;
-        public Vector3 position;
         public Vector3 direction;
         public string Name;
-        public int OwnerNetworkID;
-        public bool usePosition = false;
-        public float timestamp = 0;
+        public GameObject obj;
         public Dictionary<int, GameObject> objList = new Dictionary<int, GameObject>();
+        public int OwnerNetworkID;
+        public Vector3 position;
+        public float timestamp;
+        public bool usePosition;
 
         public ObjectTrackerInfo(GameObject obj)
         {
             this.obj = obj;
-            this.Name = obj.Name;
-            this.timestamp = EvadeUtils.TickCount;
+            Name = obj.Name;
+            timestamp = EvadeUtils.TickCount;
         }
 
         public ObjectTrackerInfo(GameObject obj, string name)
         {
             this.obj = obj;
-            this.Name = name;
-            this.timestamp = EvadeUtils.TickCount;
+            Name = name;
+            timestamp = EvadeUtils.TickCount;
         }
 
         public ObjectTrackerInfo(string name, Vector3 position)
         {
-            this.Name = name;
-            this.usePosition = true;
+            Name = name;
+            usePosition = true;
             this.position = position;
 
-            this.timestamp = EvadeUtils.TickCount;
+            timestamp = EvadeUtils.TickCount;
         }
     }
 
     public static class ObjectTracker
     {
         public static Dictionary<int, ObjectTrackerInfo> objTracker = new Dictionary<int, ObjectTrackerInfo>();
-        public static int objTrackerID = 0;
-        private static bool _loaded = false;
+        public static int objTrackerID;
+        private static bool _loaded;
 
         static ObjectTracker()
         {
-            Obj_AI_Minion.OnCreate += HiuCreate_ObjectTracker;
+            GameObject.OnCreate += HiuCreate_ObjectTracker;
             //Obj_AI_Minion.OnCreate += HiuDelete_ObjectTracker;
 
             _loaded = true;
@@ -65,7 +61,7 @@ namespace zzzz
         {
             if (!_loaded)
             {
-                Obj_AI_Minion.OnCreate += HiuCreate_ObjectTracker;
+                GameObject.OnCreate += HiuCreate_ObjectTracker;
                 _loaded = true;
             }
         }
@@ -74,8 +70,8 @@ namespace zzzz
         {
             objTracker.Add(objTrackerID, new ObjectTrackerInfo(name, position));
 
-            int trackerID = objTrackerID; //store the id for deletion
-            DelayAction.Add((int)timeExpires, () => objTracker.Remove(objTrackerID));
+            var trackerID = objTrackerID; //store the id for deletion
+            DelayAction.Add((int) timeExpires, () => objTracker.Remove(objTrackerID));
 
             objTrackerID += 1;
         }
@@ -95,10 +91,8 @@ namespace zzzz
 
         private static void HiuDelete_ObjectTracker(GameObject obj, EventArgs args)
         {
-            if (ObjectTracker.objTracker.ContainsKey(obj.NetworkId))
-            {
-                ObjectTracker.objTracker.Remove(obj.NetworkId);
-            }
+            if (objTracker.ContainsKey(obj.NetworkId))
+                objTracker.Remove(obj.NetworkId);
         }
 
         public static Vector2 GetLastHiuOrientation()

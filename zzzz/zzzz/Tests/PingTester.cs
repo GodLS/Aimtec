@@ -1,12 +1,6 @@
 ﻿using System;
-using Aimtec.SDK.Extensions;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
+using Aimtec.SDK.Extensions;
 using Aimtec.SDK.Menu;
 using Aimtec.SDK.Menu.Components;
 
@@ -14,22 +8,20 @@ using Aimtec.SDK.Menu.Components;
 
 namespace zzzz
 {
-    class PingTester
+    internal class PingTester
     {
         public static Menu testMenu;
 
-        private static Obj_AI_Hero myHero { get { return ObjectManager.GetLocalPlayer(); } }
-
         private static float lastTimerCheck = 0;
-        private static bool lastRandomMoveCoeff = false;
+        private static bool lastRandomMoveCoeff;
 
-        private static float sumPingTime = 0;
+        private static float sumPingTime;
         private static float averagePingTime = ObjectCache.gamePing;
-        private static int testCount = 0;
-        private static int autoTestCount = 0;
+        private static int testCount;
+        private static int autoTestCount;
         private static float maxPingTime = ObjectCache.gamePing;
 
-        private static bool autoTestPing = false;
+        private static bool autoTestPing;
 
         private static EvadeCommand lastTestMoveToCommand;
 
@@ -47,22 +39,19 @@ namespace zzzz
             testMenu.Attach();
         }
 
+        private static Obj_AI_Hero myHero => ObjectManager.GetLocalPlayer();
+
         private void IssueTestMove(int recursionCount)
         {
-
             var movePos = ObjectCache.myHeroCache.serverPos2D;
 
-            Random rand = new Random();
+            var rand = new Random();
 
             lastRandomMoveCoeff = !lastRandomMoveCoeff;
             if (lastRandomMoveCoeff)
-            {
                 movePos.X += 65 + rand.Next(0, 20);
-            }
             else
-            {
                 movePos.X -= 65 + rand.Next(0, 20);
-            }
 
             lastTestMoveToCommand = new EvadeCommand
             {
@@ -74,10 +63,7 @@ namespace zzzz
             myHero.IssueOrder(OrderType.MoveTo, movePos.To3D());
 
             if (recursionCount > 1)
-            {
                 DelayAction.Add(500, () => IssueTestMove(recursionCount - 1));
-            }
-
         }
 
         private void SetPing(int ping)
@@ -91,13 +77,12 @@ namespace zzzz
             {
                 Console.WriteLine("Testing Ping...Please wait 10 seconds");
 
-                int testAmount = 20;
+                var testAmount = 20;
 
                 testMenu["AutoSetPing"].As<MenuBool>().Value = false;
                 IssueTestMove(testAmount);
                 autoTestCount = testCount + testAmount;
                 autoTestPing = true;
-
             }
 
             if (testMenu["PrintResults"].As<MenuBool>().Enabled)
@@ -108,14 +93,14 @@ namespace zzzz
                 Console.WriteLine("Max Extra Delay: " + maxPingTime);
             }
 
-            if (autoTestPing == true && testCount >= autoTestCount)
+            if (autoTestPing && testCount >= autoTestCount)
             {
                 Console.WriteLine("Auto Set Ping Complete");
 
                 Console.WriteLine("Average Extra Delay: " + averagePingTime);
                 Console.WriteLine("Max Extra Delay: " + maxPingTime);
 
-                SetPing((int)(averagePingTime + 10));
+                SetPing((int) (averagePingTime + 10));
                 Console.WriteLine("Set Average extra ping + 10: " + (averagePingTime + 10));
 
                 autoTestPing = false;
@@ -145,7 +130,7 @@ namespace zzzz
                 else
                 {
                     Console.WriteLine("Set Max extra ping: " + maxPingTime);
-                    SetPing((int)maxPingTime);
+                    SetPing((int) maxPingTime);
                 }
             }
 
@@ -160,13 +145,13 @@ namespace zzzz
                 else
                 {
                     Console.WriteLine("Set Average extra ping: " + averagePingTime);
-                    SetPing((int)averagePingTime);
+                    SetPing((int) averagePingTime);
                 }
             }
 
             if (myHero.HasPath)
-            {
-                if (lastTestMoveToCommand != null && lastTestMoveToCommand.isProcessed == false && lastTestMoveToCommand.order == EvadeOrderCommand.MoveTo)
+                if (lastTestMoveToCommand != null && lastTestMoveToCommand.isProcessed == false &&
+                    lastTestMoveToCommand.order == EvadeOrderCommand.MoveTo)
                 {
                     var path = myHero.Path;
 
@@ -176,7 +161,8 @@ namespace zzzz
 
                         if (movePos.Distance(lastTestMoveToCommand.targetPosition) < 10)
                         {
-                            float moveTime = EvadeUtils.TickCount - lastTestMoveToCommand.timestamp - ObjectCache.gamePing;
+                            var moveTime = EvadeUtils.TickCount - lastTestMoveToCommand.timestamp -
+                                           ObjectCache.gamePing;
                             Console.WriteLine("Extra Delay: " + moveTime);
                             lastTestMoveToCommand.isProcessed = true;
 
@@ -186,9 +172,7 @@ namespace zzzz
                             maxPingTime = Math.Max(maxPingTime, moveTime);
                         }
                     }
-
                 }
-            }
         }
     }
 }

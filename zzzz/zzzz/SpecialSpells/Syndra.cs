@@ -1,16 +1,13 @@
-﻿using System;
-using Aimtec.SDK.Extensions;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
-//using SharpDX;
 using Aimtec.SDK.Extensions;
+using Aimtec.SDK.Util.Cache;
+//using SharpDX;
 
 namespace zzzz.SpecialSpells
 {
-    class Syndra : ChampionPlugin
+    internal class Syndra : ChampionPlugin
     {
         private const string _sphereName = "syndrasphere";
         private static readonly List<Obj_AI_Minion> _spheres = new List<Obj_AI_Minion>();
@@ -44,9 +41,7 @@ namespace zzzz.SpecialSpells
             {
                 var timestamp = spot.Key;
                 if (Game.ClockTime - timestamp >= 1.2f * 0.6f)
-                {
                     _qSpots.Remove(timestamp);
-                }
             }
         }
 
@@ -54,37 +49,30 @@ namespace zzzz.SpecialSpells
         {
             var sphere = sender as Obj_AI_Minion;
             if (sphere != null && sphere.UnitSkinName == _sphereName && sphere.CheckTeam())
-            {
                 if (e.Animation == "Death")
-                {
                     _spheres.RemoveAll(i => i.NetworkId == sphere.NetworkId);
-                }
-            }
         }
 
         private static void GameObject_OnCreate(GameObject sender)
         {
             var sphere = sender as Obj_AI_Minion;
             if (sphere != null && sphere.UnitSkinName == _sphereName && sphere.CheckTeam())
-            {
                 if (!_spheres.Contains(sphere))
                 {
                     RemovePairsNear(sphere.Position);
                     _spheres.Add(sphere);
                 }
-            }
         }
 
         private static void GameObject_OnDelete(GameObject sender)
         {
             var sphere = sender as Obj_AI_Minion;
             if (sphere != null && sphere.UnitSkinName == _sphereName && sphere.CheckTeam())
-            {
                 _spheres.RemoveAll(i => i.NetworkId == sphere.NetworkId);
-            }
         }
 
-        private void SpellDetector_OnProcessSpecialSpell(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args, SpellData spellData, SpecialSpellEventArgs specialSpellArgs)
+        private void SpellDetector_OnProcessSpecialSpell(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args,
+            SpellData spellData, SpecialSpellEventArgs specialSpellArgs)
         {
             if (spellData.spellName.ToLower() == "syndrae")
             {
@@ -95,11 +83,13 @@ namespace zzzz.SpecialSpells
                 {
                     // check if e whill hit the sphere
                     var proj = sphere.Position.To2D().ProjectOn(estart.To2D(), eend.To2D());
-                    if (proj.IsOnSegment && sphere.Position.To2D().Distance(proj.SegmentPoint) <= sphere.BoundingRadius + 155)
+                    if (proj.IsOnSegment && sphere.Position.To2D().Distance(proj.SegmentPoint) <=
+                        sphere.BoundingRadius + 155)
                     {
                         var start = sphere.Position;
-                        var end = hero.ServerPosition + (sphere.Position - hero.ServerPosition).Normalized() * spellData.range;
-                        var data = (SpellData)spellData.Clone();
+                        var end = hero.ServerPosition + (sphere.Position - hero.ServerPosition).Normalized() *
+                                  spellData.range;
+                        var data = (SpellData) spellData.Clone();
                         data.spellDelay = sphere.Distance(hero.ServerPosition) / spellData.projectileSpeed * 1000;
                         SpellDetector.CreateSpellData(hero, start, end, data, sphere);
                     }
@@ -114,9 +104,11 @@ namespace zzzz.SpecialSpells
                     if (proj.IsOnSegment && spherePosition.To2D().Distance(proj.SegmentPoint) <= 155)
                     {
                         var start = spherePosition;
-                        var end = hero.ServerPosition + (spherePosition - hero.ServerPosition).Normalized() * spellData.range;
-                        var data = (SpellData)spellData.Clone();
-                        data.spellDelay = spherePosition.Distance(hero.ServerPosition) / spellData.projectileSpeed * 1000;
+                        var end = hero.ServerPosition + (spherePosition - hero.ServerPosition).Normalized() *
+                                  spellData.range;
+                        var data = (SpellData) spellData.Clone();
+                        data.spellDelay = spherePosition.Distance(hero.ServerPosition) / spellData.projectileSpeed *
+                                          1000;
                         SpellDetector.CreateSpellData(hero, start, end, data, null);
                     }
                 }
@@ -146,9 +138,7 @@ namespace zzzz.SpecialSpells
         private static void RemovePairsNear(Vector3 pos)
         {
             foreach (var pair in _qSpots.ToArray().Where(o => o.Value.Distance(pos) <= 30))
-            {
                 _qSpots.Remove(pair.Key);
-            }
         }
     }
 }

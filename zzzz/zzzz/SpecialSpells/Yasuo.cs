@@ -1,37 +1,25 @@
-﻿using System;
-using Aimtec.SDK.Extensions;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿using System.Linq;
 using Aimtec;
 using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
+
 //using SharpDX;
 
 namespace zzzz.SpecialSpells
 {
-    class Yasuo : ChampionPlugin
+    internal class Yasuo : ChampionPlugin
     {
-        static Yasuo()
-        {
-
-        }
-
         public void LoadSpecialSpell(SpellData spellData)
         {
             if (spellData.spellName == "YasuoQW" || spellData.spellName == "YasuoQ3W")
             {
                 var hero = GameObjects.Heroes.FirstOrDefault(h => h.ChampionName == "Yasuo");
                 if (hero != null && hero.CheckTeam())
-                {
-                    Obj_AI_Hero.OnProcessSpellCast += (sender, args) => ProcessSpell_YasuoQW(sender, args, spellData);
-                }
+                    Obj_AI_Base.OnProcessSpellCast += (sender, args) => ProcessSpell_YasuoQW(sender, args, spellData);
             }
         }
 
-        private static void ProcessSpell_YasuoQW(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args, SpellData spellData)
+        private static void ProcessSpell_YasuoQW(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args,
+            SpellData spellData)
         {
             if (hero.IsEnemy && args.SpellData.Name == "YasuoQ")
             {
@@ -39,9 +27,7 @@ namespace zzzz.SpecialSpells
                 var castTime = (hero.SpellBook.CastEndTime - Game.ClockTime) * 1000;
 
                 if (castTime > 0)
-                {
                     spellData.spellDelay = castTime;
-                }
             }
         }
     }

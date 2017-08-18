@@ -1,16 +1,9 @@
 ﻿using System;
-using Aimtec.SDK.Extensions;
-using System.Reflection;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
-using Aimtec.SDK.Events;
+using Aimtec.SDK.Extensions;
 using Aimtec.SDK.Menu;
 using Aimtec.SDK.Menu.Components;
-using Aimtec.SDK.Util.Cache;
 using Aimtec.SDK.Orbwalking;
 using Aimtec.SDK.Util;
 
@@ -20,8 +13,6 @@ namespace zzzz
 {
     internal class Evade
     {
-        public static Obj_AI_Hero myHero { get { return ObjectManager.GetLocalPlayer(); } }
-
         public static SpellDetector spellDetector;
         private static SpellDrawer spellDrawer;
         private static EvadeTester evadeTester;
@@ -31,20 +22,20 @@ namespace zzzz
         private static AutoSetPing autoSetPing;
 
         public static SpellSlot lastSpellCast;
-        public static float lastSpellCastTime = 0;
+        public static float lastSpellCastTime;
 
-        public static float lastWindupTime = 0;
+        public static float lastWindupTime;
 
-        public static float lastTickCount = 0;
-        public static float lastStopEvadeTime = 0;
+        public static float lastTickCount;
+        public static float lastStopEvadeTime;
 
         public static Vector3 lastMovementBlockPos = Vector3.Zero;
-        public static float lastMovementBlockTime = 0;
+        public static float lastMovementBlockTime;
 
-        public static float lastEvadeOrderTime = 0;
-        public static float lastIssueOrderGameTime = 0;
-        public static float lastIssueOrderTime = 0;
-        public static Obj_AI_BaseIssueOrderEventArgs lastIssueOrderArgs = null;
+        public static float lastEvadeOrderTime;
+        public static float lastIssueOrderGameTime;
+        public static float lastIssueOrderTime;
+        public static Obj_AI_BaseIssueOrderEventArgs lastIssueOrderArgs;
 
         public static Vector2 lastMoveToPosition = Vector2.Zero;
         public static Vector2 lastMoveToServerPos = Vector2.Zero;
@@ -52,22 +43,35 @@ namespace zzzz
 
         public static DateTime assemblyLoadTime = DateTime.Now;
 
-        public static bool isDodging = false;
-        public static bool dodgeOnlyDangerous = false;
+        public static bool isDodging;
+        public static bool dodgeOnlyDangerous;
 
         public static bool devModeOn = false;
-        public static bool hasGameEnded = false;
-        public static bool isChanneling = false;
+        public static bool hasGameEnded;
+        public static bool isChanneling;
         public static Vector2 channelPosition = Vector2.Zero;
 
         public static PositionInfo lastPosInfo;
 
-        public static EvadeCommand lastEvadeCommand = new EvadeCommand { isProcessed = true, timestamp = EvadeUtils.TickCount };
+        public static EvadeCommand lastEvadeCommand =
+            new EvadeCommand {isProcessed = true, timestamp = EvadeUtils.TickCount};
 
-        public static EvadeCommand lastBlockedUserMoveTo = new EvadeCommand { isProcessed = true, timestamp = EvadeUtils.TickCount };
-        public static float lastDodgingEndTime = 0;
+        public static EvadeCommand lastBlockedUserMoveTo =
+            new EvadeCommand {isProcessed = true, timestamp = EvadeUtils.TickCount};
 
-        public static Aimtec.SDK.Menu.Menu menu, miscMenu, keyMenu, mainMenu, limiterMenu, bufferMenu, fastEvadeMenu, spellMenu, drawMenu, autoSetPingMenu, evadeSpellMenu;
+        public static float lastDodgingEndTime;
+
+        public static Menu menu,
+            miscMenu,
+            keyMenu,
+            mainMenu,
+            limiterMenu,
+            bufferMenu,
+            fastEvadeMenu,
+            spellMenu,
+            drawMenu,
+            autoSetPingMenu,
+            evadeSpellMenu;
 
         public static float sumCalculationTime = 0;
         public static float numCalculationTime = 0;
@@ -78,18 +82,16 @@ namespace zzzz
             LoadAssembly();
         }
 
+        public static Obj_AI_Hero myHero => ObjectManager.GetLocalPlayer();
+
         private void LoadAssembly()
         {
             DelayAction.Add(0, () =>
             {
                 if (Game.Mode == GameMode.Running)
-                {
                     Game_OnGameLoad();
-                }
                 else
-                {
                     Game.OnStart += Game_OnGameLoad;
-                }
             });
         }
 
@@ -97,13 +99,13 @@ namespace zzzz
         {
             try
             {
-               // devModeOn = true;
+                // devModeOn = true;
 
-                Obj_AI_Hero.OnIssueOrder += Game_OnIssueOrder;
+                Obj_AI_Base.OnIssueOrder += Game_OnIssueOrder;
                 SpellBook.OnCastSpell += Game_OnCastSpell;
                 Game.OnUpdate += Game_OnGameUpdate;
 
-                Obj_AI_Hero.OnProcessSpellCast += Game_OnProcessSpell;
+                Obj_AI_Base.OnProcessSpellCast += Game_OnProcessSpell;
 
                 Game.OnEnd += Game_OnGameEnd;
                 SpellDetector.OnProcessDetectedSpells += SpellDetector_OnProcessDetectedSpells;
@@ -116,9 +118,10 @@ namespace zzzz
 
                 mainMenu = new Menu("MainMenu", "Main Menu");
                 mainMenu.Add(new MenuKeyBind("DodgeSkillShots", "Dodge SkillShots", KeyCode.K, KeybindType.Toggle));
-                mainMenu.Add(new MenuBool("DodgeDangerous", "Dodge Only Dangerous", false));             
-                mainMenu.Add(new MenuBool("DodgeCircularSpells", "Dodge Circular Spells"));         
-                mainMenu.Add(new MenuKeyBind("ActivateEvadeSpells", "Activate Evade Spells", KeyCode.K, KeybindType.Toggle));
+                mainMenu.Add(new MenuBool("DodgeDangerous", "Dodge Only Dangerous", false));
+                mainMenu.Add(new MenuBool("DodgeCircularSpells", "Dodge Circular Spells"));
+                mainMenu.Add(new MenuKeyBind("ActivateEvadeSpells", "Activate Evade Spells", KeyCode.K,
+                    KeybindType.Toggle));
                 mainMenu.Add(new MenuBool("DodgeFOWSpells", "Dodge FOW Spells"));
                 menu.Add(mainMenu);
 
@@ -126,13 +129,15 @@ namespace zzzz
                 keyMenu.Add(new MenuBool("DodgeOnlyOnComboKeyEnabled", "Dodge Only On Combo Key Enabled", false));
                 keyMenu.Add(new MenuKeyBind("DodgeComboKey", "Dodge Combo Key", KeyCode.Space, KeybindType.Press));
                 keyMenu.Add(new MenuBool("DodgeDangerousKeyEnabled", "Enable Dodge Only Dangerous Keys", false));
-                keyMenu.Add(new MenuKeyBind("DodgeDangerousKey", "Dodge Only Dangerous Key", KeyCode.Space, KeybindType.Press));
-                keyMenu.Add(new MenuKeyBind("DodgeDangerousKey2", "Dodge Only Dangerous Key 2", KeyCode.V, KeybindType.Press));
+                keyMenu.Add(new MenuKeyBind("DodgeDangerousKey", "Dodge Only Dangerous Key", KeyCode.Space,
+                    KeybindType.Press));
+                keyMenu.Add(new MenuKeyBind("DodgeDangerousKey2", "Dodge Only Dangerous Key 2", KeyCode.V,
+                    KeybindType.Press));
                 keyMenu.Add(new MenuBool("DontDodgeKeyEnabled", "Dont Dodge Key Enabled", false));
                 keyMenu.Add(new MenuKeyBind("DontDodgeKey", "Dodge Combo Key", KeyCode.Z, KeybindType.Press));
                 menu.Add(keyMenu);
 
-                Menu loadTestMenu = new Menu("LoadTests", "Tests")
+                var loadTestMenu = new Menu("LoadTests", "Tests")
                 {
                     new MenuBool("LoadPingTester", "Load Ping Tester", false),
                     new MenuBool("LoadSpellTester", "Load Spell Tester", false)
@@ -152,7 +157,7 @@ namespace zzzz
                 miscMenu.Add(new MenuList("EvadeMode", "Evade Profile",
                     new[] {"Smooth", "Very Smooth", "Fastest", "Hawk", "Kurisu", "GuessWho"}, 0));
                 miscMenu.Add(new MenuBool("PreventDodgingUnderTower", "Prevent Dodging Under Tower"));
-                miscMenu.Add(new MenuBool("PreventDodgingNearEnemy", "Prevent Dodging Near Enemy"));          
+                miscMenu.Add(new MenuBool("PreventDodgingNearEnemy", "Prevent Dodging Near Enemy"));
                 //miscMenu.Add(new MenuBool("DrawEvadePosition", "Draw Evade Position", false));
                 miscMenu.Add(loadTestMenu);
                 menu.Add(miscMenu);
@@ -276,7 +281,7 @@ namespace zzzz
 
                 menu.Attach();
 
-                
+
                 spellDrawer = new SpellDrawer(menu);
 
                 //autoSetPing = new AutoSetPing(menu);
@@ -366,7 +371,7 @@ namespace zzzz
             if (mode == "Fastest")
             {
                 ResetConfig(false);
-                menu["FastMovementBlock"].As<MenuBool>().Value = (true);
+                menu["FastMovementBlock"].As<MenuBool>().Value = true;
                 menu["FastEvadeActivationTime"].As<MenuSlider>().Value = 120;
                 menu["RejectMinDistance"].As<MenuSlider>().Value = 25;
                 menu["ExtraCPADistance"].As<MenuSlider>().Value = 25;
@@ -375,7 +380,6 @@ namespace zzzz
                 menu["SpellDetectionTime"].As<MenuSlider>().Value = 0;
                 menu["ReactionTime"].As<MenuSlider>().Value = 0;
                 menu["DodgeInterval"].As<MenuSlider>().Value = 0;
-
             }
             else if (mode == "Very Smooth")
             {
@@ -388,7 +392,7 @@ namespace zzzz
             else if (mode == "Smooth")
             {
                 ResetConfig(false);
-                menu["FastMovementBlock"].As<MenuBool>().Value = (true);
+                menu["FastMovementBlock"].As<MenuBool>().Value = true;
                 menu["FastEvadeActivationTime"].As<MenuSlider>().Value = 65;
                 menu["RejectMinDistance"].As<MenuSlider>().Value = 10;
                 menu["ExtraCPADistance"].As<MenuSlider>().Value = 10;
@@ -401,17 +405,17 @@ namespace zzzz
                 menu["DodgeDangerous"].As<MenuBool>().Value = false;
                 menu["DodgeFOWSpells"].As<MenuBool>().Value = false;
                 menu["DodgeCircularSpells"].As<MenuBool>().Value = false;
-                menu["DodgeDangerousKeyEnabled"].As<MenuBool>().Value = (true);
-                menu["HigherPrecision"].As<MenuBool>().Value = (true);
-                menu["RecalculatePosition"].As<MenuBool>().Value = (true);
-                menu["ContinueMovement"].As<MenuBool>().Value = (true);
-                menu["CalculateWindupDelay"].As<MenuBool>().Value = (true);
-                menu["CheckSpellCollision"].As<MenuBool>().Value = (true);
+                menu["DodgeDangerousKeyEnabled"].As<MenuBool>().Value = true;
+                menu["HigherPrecision"].As<MenuBool>().Value = true;
+                menu["RecalculatePosition"].As<MenuBool>().Value = true;
+                menu["ContinueMovement"].As<MenuBool>().Value = true;
+                menu["CalculateWindupDelay"].As<MenuBool>().Value = true;
+                menu["CheckSpellCollision"].As<MenuBool>().Value = true;
                 menu["PreventDodgingUnderTower"].As<MenuBool>().Value = false;
-                menu["PreventDodgingNearEnemy"].As<MenuBool>().Value = (true);
-                menu["AdvancedSpellDetection"].As<MenuBool>().Value = (true);
-                menu["ClickOnlyOnce"].As<MenuBool>().Value = (true);
-                menu["EnableEvadeDistance"].As<MenuBool>().Value = (true);
+                menu["PreventDodgingNearEnemy"].As<MenuBool>().Value = true;
+                menu["AdvancedSpellDetection"].As<MenuBool>().Value = true;
+                menu["ClickOnlyOnce"].As<MenuBool>().Value = true;
+                menu["EnableEvadeDistance"].As<MenuBool>().Value = true;
                 menu["TickLimiter"].As<MenuSlider>().Value = 200;
                 menu["SpellDetectionTime"].As<MenuSlider>().Value = 375;
                 menu["ReactionTime"].As<MenuSlider>().Value = 285;
@@ -433,41 +437,36 @@ namespace zzzz
                 menu["DodgeFOWSpells"].As<MenuBool>().Value = false;
                 menu["DodgeDangerousKeyEnabled"].As<MenuBool>().Value = true;
                 menu["RecalculatePosition"].As<MenuBool>().Value = true;
-                menu["ContinueMovement"].As<MenuBool>().Value = (true);
-                menu["CalculateWindupDelay"].As<MenuBool>().Value = (true);
-                menu["PreventDodgingUnderTower"].As<MenuBool>().Value = (true);
-                menu["PreventDodgingNearEnemy"].As<MenuBool>().Value = (true);
+                menu["ContinueMovement"].As<MenuBool>().Value = true;
+                menu["CalculateWindupDelay"].As<MenuBool>().Value = true;
+                menu["PreventDodgingUnderTower"].As<MenuBool>().Value = true;
+                menu["PreventDodgingNearEnemy"].As<MenuBool>().Value = true;
                 menu["MinComfortZone"].As<MenuSlider>().Value = 850;
             }
 
             else if (mode == "GuessWho")
             {
                 ResetConfig(false);
-                menu["DodgeDangerousKeyEnabled"].As<MenuBool>().Value = (true);
+                menu["DodgeDangerousKeyEnabled"].As<MenuBool>().Value = true;
                 //menu["DodgeDangerousKey2"].As<MenuBool>().Value = 109;
-                menu["HigherPrecision"].As<MenuBool>().Value = (true);
-                menu["CheckSpellCollision"].As<MenuBool>().Value = (true);
-                menu["PreventDodgingUnderTower"].As<MenuBool>().Value = (true);
+                menu["HigherPrecision"].As<MenuBool>().Value = true;
+                menu["CheckSpellCollision"].As<MenuBool>().Value = true;
+                menu["PreventDodgingUnderTower"].As<MenuBool>().Value = true;
                 menu["ShowStatus"].As<MenuBool>().Value = false;
-                menu["DrawSpellPos"].As<MenuBool>().Value = (true);
+                menu["DrawSpellPos"].As<MenuBool>().Value = true;
             }
         }
 
         private void OnLoadPingTesterChange(MenuComponent sender, ValueChangedArgs e)
         {
-
             if (pingTester == null)
-            {
                 pingTester = new PingTester();
-            }
         }
 
         private void OnLoadSpellTesterChange(MenuComponent sender, ValueChangedArgs e)
         {
             if (spellTester == null)
-            {
                 spellTester = new SpellTester();
-            }
         }
 
         private void Game_OnGameEnd(GameObjectTeam team)
@@ -484,18 +483,12 @@ namespace zzzz
             string name;
 
             if (SpellDetector.channeledSpells.TryGetValue(sData.Name, out name))
-            {
-                //Evade.isChanneling = true;
-                //Evade.channelPosition = ObjectCache.myHeroCache.serverPos2D;
                 lastStopEvadeTime = EvadeUtils.TickCount + ObjectCache.gamePing + 100;
-            }
 
             //block spell commmands if evade spell just used
             if (EvadeSpell.lastSpellEvadeCommand != null &&
                 EvadeSpell.lastSpellEvadeCommand.timestamp + ObjectCache.gamePing + 150 > EvadeUtils.TickCount)
-            {
                 args.Process = false;
-            }
 
             lastSpellCast = args.Slot;
             lastSpellCastTime = EvadeUtils.TickCount;
@@ -509,12 +502,10 @@ namespace zzzz
 
             // fix : uncomment all 
             if (Situation.ShouldDodge())
-            {
                 if (isDodging && SpellDetector.spells.Any())
-                {
-                    foreach (KeyValuePair<String, SpellData> entry in SpellDetector.windupSpells)
+                    foreach (var entry in SpellDetector.windupSpells)
                     {
-                        SpellData spellData = entry.Value;
+                        var spellData = entry.Value;
 
                         if (spellData.spellKey == args.Slot) //check if it's a spell that we should block
                         {
@@ -522,11 +513,8 @@ namespace zzzz
                             return;
                         }
                     }
-                }
-            }
 
             foreach (var evadeSpell in EvadeSpell.evadeSpells)
-            {
                 if (evadeSpell.isItem == false && evadeSpell.spellKey == args.Slot &&
                     evadeSpell.untargetable == false)
                 {
@@ -548,10 +536,7 @@ namespace zzzz
                         var dashPos = args.Start.To2D();
                         // fix : uncommont .target
                         if (args.Target != null)
-                        {
-                            
                             dashPos = args.Target.Position.To2D();
-                        }
 
                         if (evadeSpell.fixedRange || dashPos.Distance(myHero.ServerPosition.To2D()) > evadeSpell.range)
                         {
@@ -575,7 +560,6 @@ namespace zzzz
                     }
                     return;
                 }
-            }
         }
 
         private void Game_OnIssueOrder(Obj_AI_Base hero, Obj_AI_BaseIssueOrderEventArgs args)
@@ -614,9 +598,9 @@ namespace zzzz
                     {
                         // fix all the args.Target.Position / args.Position
                         order = EvadeOrderCommand.MoveTo,
-                        targetPosition = args/*.Target*/.Position.To2D(), // NOT SURE IF POSITION OR TARGET.POSITION
+                        targetPosition = args /*.Target*/.Position.To2D(), // NOT SURE IF POSITION OR TARGET.POSITION
                         timestamp = EvadeUtils.TickCount,
-                        isProcessed = false,
+                        isProcessed = false
                     };
                     //args.ProcessEvent = true;
 
@@ -648,34 +632,27 @@ namespace zzzz
                         lastBlockedUserMoveTo = new EvadeCommand
                         {
                             order = EvadeOrderCommand.MoveTo,
-                            targetPosition = args/*.Target*/.Position.To2D(),
+                            targetPosition = args /*.Target*/.Position.To2D(),
                             timestamp = EvadeUtils.TickCount,
-                            isProcessed = false,
+                            isProcessed = false
                         };
 
                         args.ProcessEvent = false; //Block the command
-                       // args.ProcessEvent = true;
+                        // args.ProcessEvent = true;
 
-                        if (EvadeUtils.TickCount - lastMovementBlockTime < 500 && lastMovementBlockPos.Distance(args./*Target.*/Position) < 100)
-                        {
+                        if (EvadeUtils.TickCount - lastMovementBlockTime < 500 &&
+                            lastMovementBlockPos.Distance(args. /*Target.*/Position) < 100)
                             return;
-                        }
 
-                        lastMovementBlockPos = args./*Target.*/Position;
+                        lastMovementBlockPos = args. /*Target.*/Position;
                         lastMovementBlockTime = EvadeUtils.TickCount;
 
                         var posInfo = EvadeHelper.GetBestPositionMovementBlock(movePos);
                         if (posInfo != null)
-                        {
-                            //Console.WriteLine("On issue order");
                             EvadeCommand.MoveTo(posInfo.position);
-                        }
                         return;
                     }
-                    else
-                    {
-                        lastBlockedUserMoveTo.isProcessed = true;
-                    }
+                    lastBlockedUserMoveTo.isProcessed = true;
                 }
             }
             else //need more logic
@@ -693,10 +670,11 @@ namespace zzzz
                         {
                             // fix
                             var baseTarget = target as Obj_AI_Base;
-                            if (baseTarget != null && ObjectCache.myHeroCache.serverPos2D.Distance(baseTarget.ServerPosition.To2D()) >
+                            if (baseTarget != null &&
+                                ObjectCache.myHeroCache.serverPos2D.Distance(baseTarget.ServerPosition.To2D()) >
                                 myHero.AttackRange + ObjectCache.myHeroCache.boundingRadius + baseTarget.BoundingRadius)
                             {
-                                var movePos = args/*.Target*/.Position.To2D();
+                                var movePos = args /*.Target*/.Position.To2D();
                                 var extraDelay = ObjectCache.menuCache.cache["ExtraPingBuffer"].As<MenuSlider>().Value;
                                 if (EvadeHelper.CheckMovePath(movePos, ObjectCache.gamePing + extraDelay))
                                 {
@@ -709,7 +687,7 @@ namespace zzzz
                 }
             }
 
-            if (args.ProcessEvent == true)
+            if (args.ProcessEvent)
             {
                 lastIssueOrderGameTime = Game.ClockTime * 1000;
                 lastIssueOrderTime = EvadeUtils.TickCount;
@@ -717,31 +695,25 @@ namespace zzzz
 
                 if (args.OrderType == OrderType.MoveTo)
                 {
-                    lastMoveToPosition = args/*.Target*/.Position.To2D();
+                    lastMoveToPosition = args /*.Target*/.Position.To2D();
                     lastMoveToServerPos = myHero.ServerPosition.To2D();
                 }
 
                 if (args.OrderType == OrderType.Stop)
-                {
                     lastStopPosition = myHero.ServerPosition.To2D();
-                }
             }
         }
 
         private void Orbwalker_PreAttack(object sender, PreAttackEventArgs e)
         {
             if (isDodging)
-            {
                 e.Cancel = true; //Block orbwalking
-            }
         }
 
         private void Game_OnProcessSpell(Obj_AI_Base sender, Obj_AI_BaseMissileClientDataEventArgs args)
         {
             if (!sender.IsMe)
-            {
                 return;
-            }
 
             string name;
             if (SpellDetector.channeledSpells.TryGetValue(args.SpellData.Name.ToLower(), out name))
@@ -760,13 +732,9 @@ namespace zzzz
                     lastWindupTime = EvadeUtils.TickCount + castTime - Game.Ping / 2;
 
                     if (isDodging)
-                    {
                         SpellDetector_OnProcessDetectedSpells(); //reprocess
-                    }
                 }
             }
-
-
         }
 
         private void Game_OnGameUpdate()
@@ -778,9 +746,7 @@ namespace zzzz
 
                 if (isChanneling && channelPosition.Distance(ObjectCache.myHeroCache.serverPos2D) > 50
                     && !myHero.SpellBook.IsChanneling)
-                {
                     isChanneling = false;
-                }
 
                 // fix
                 //if (ObjectCache.menuCache.cache["ResetConfig"].As<MenuBool>().Enabled)
@@ -789,7 +755,8 @@ namespace zzzz
                 //    //menu.Item("ResetConfig"));
                 //}
 
-                var limitDelay = ObjectCache.menuCache.cache["TickLimiter"].As<MenuSlider>(); //Tick limiter                
+                var limitDelay =
+                    ObjectCache.menuCache.cache["TickLimiter"].As<MenuSlider>(); //Tick limiter                
                 if (EvadeHelper.fastEvadeMode || EvadeUtils.TickCount - lastTickCount > limitDelay.Value)
                 {
                     if (EvadeUtils.TickCount > lastStopEvadeTime)
@@ -813,8 +780,7 @@ namespace zzzz
 
         private void RecalculatePath()
         {
-            if (ObjectCache.menuCache.cache["RecalculatePosition"].As<MenuBool>().Enabled && isDodging)//recheck path
-            {
+            if (ObjectCache.menuCache.cache["RecalculatePosition"].As<MenuBool>().Enabled && isDodging) //recheck path
                 if (lastPosInfo != null && !lastPosInfo.recalculatedPath)
                 {
                     var path = myHero.Path;
@@ -824,7 +790,8 @@ namespace zzzz
 
                         if (movePos.Distance(lastPosInfo.position) < 5) //more strict checking
                         {
-                            var posInfo = EvadeHelper.CanHeroWalkToPos(movePos, ObjectCache.myHeroCache.moveSpeed, 0, 0, false);
+                            var posInfo =
+                                EvadeHelper.CanHeroWalkToPos(movePos, ObjectCache.myHeroCache.moveSpeed, 0, 0, false);
                             if (posInfo.posDangerCount > lastPosInfo.posDangerCount)
                             {
                                 lastPosInfo.recalculatedPath = true;
@@ -847,7 +814,6 @@ namespace zzzz
                         }
                     }
                 }
-            }
         }
 
         private void ContinueLastBlockedCommand()
@@ -863,7 +829,7 @@ namespace zzzz
                     && EvadeUtils.TickCount - lastBlockedUserMoveTo.timestamp < 1500)
                 {
                     movePos = movePos + (movePos - ObjectCache.myHeroCache.serverPos2D).Normalized()
-                        * EvadeUtils.random.Next(1, 65);
+                              * EvadeUtils.random.Next(1, 65);
 
                     if (!EvadeHelper.CheckMovePath(movePos, ObjectCache.gamePing + extraDelay))
                     {
@@ -878,11 +844,11 @@ namespace zzzz
 
         private void CheckHeroInDanger()
         {
-            bool playerInDanger = false;
+            var playerInDanger = false;
 
-            foreach (KeyValuePair<int, Spell> entry in SpellDetector.spells)
+            foreach (var entry in SpellDetector.spells)
             {
-                Spell spell = entry.Value;
+                var spell = entry.Value;
 
                 if (lastPosInfo != null && lastPosInfo.dodgeableSpells.Contains(spell.spellID))
                 {
@@ -902,9 +868,7 @@ namespace zzzz
             }
 
             if (isDodging && !playerInDanger)
-            {
                 lastDodgingEndTime = EvadeUtils.TickCount;
-            }
 
             if (isDodging == false && !Situation.ShouldDodge())
                 return;
@@ -937,13 +901,13 @@ namespace zzzz
                     }*/
 
 
-                    Vector2 lastBestPosition = lastPosInfo.position;
+                    var lastBestPosition = lastPosInfo.position;
 
                     if (ObjectCache.menuCache.cache["ClickOnlyOnce"].As<MenuBool>().Value == false
                         || !(myHero.Path.Count() > 0 && lastPosInfo.position.Distance(myHero.Path.Last().To2D()) < 5))
-                    //|| lastPosInfo.timestamp > lastEvadeOrderTime)
+                        //|| lastPosInfo.timestamp > lastEvadeOrderTime)
                     {
-                       // Console.WriteLine("DodgeSkillshots");
+                        // Console.WriteLine("DodgeSkillshots");
                         EvadeCommand.MoveTo(lastBestPosition);
                         lastEvadeOrderTime = EvadeUtils.TickCount;
                     }
@@ -980,11 +944,7 @@ namespace zzzz
 
                         var posInfo = EvadeHelper.GetBestPositionMovementBlock(movePos);
                         if (posInfo != null)
-                        {
-                            //Console.WriteLine("DodgeSkillshots 2");
                             EvadeCommand.MoveTo(posInfo.position);
-                        }
-                        return;
                     }
                 }
             }
@@ -993,43 +953,33 @@ namespace zzzz
         public void CheckLastMoveTo()
         {
             if (EvadeHelper.fastEvadeMode || ObjectCache.menuCache.cache["FastMovementBlock"].As<MenuBool>().Enabled)
-            {
                 if (isDodging == false)
-                {
                     if (lastIssueOrderArgs != null && lastIssueOrderArgs.OrderType == OrderType.MoveTo)
-                    {
                         if (Game.ClockTime * 1000 - lastIssueOrderGameTime < 500)
                         {
                             Game_OnIssueOrder(myHero, lastIssueOrderArgs);
                             lastIssueOrderArgs = null;
                         }
-                    }
-                }
-            }
         }
 
         public static bool isDodgeDangerousEnabled()
         {
             // fix
             //return true;
-            if (ObjectCache.menuCache.cache["DodgeDangerous"].As<MenuBool>().Value == true)
-            {
+            if (ObjectCache.menuCache.cache["DodgeDangerous"].As<MenuBool>().Value)
                 return true;
-            }
 
-            if (ObjectCache.menuCache.cache["DodgeDangerousKeyEnabled"].As<MenuBool>().Value == true)
-            {
-                if (ObjectCache.menuCache.cache["DodgeDangerousKey"].As<MenuKeyBind>().Enabled == true
-                || ObjectCache.menuCache.cache["DodgeDangerousKey2"].As<MenuKeyBind>().Enabled == true)
+            if (ObjectCache.menuCache.cache["DodgeDangerousKeyEnabled"].As<MenuBool>().Value)
+                if (ObjectCache.menuCache.cache["DodgeDangerousKey"].As<MenuKeyBind>().Enabled
+                    || ObjectCache.menuCache.cache["DodgeDangerousKey2"].As<MenuKeyBind>().Enabled)
                     return true;
-            }
 
             return false;
         }
 
         public static void CheckDodgeOnlyDangerous() //Dodge only dangerous event
         {
-            bool bDodgeOnlyDangerous = isDodgeDangerousEnabled();
+            var bDodgeOnlyDangerous = isDodgeDangerousEnabled();
 
             if (dodgeOnlyDangerous == false && bDodgeOnlyDangerous)
             {
@@ -1089,7 +1039,8 @@ namespace zzzz
                     {
                         lastPosInfo = posInfo.CompareLastMovePos();
 
-                        var travelTime = ObjectCache.myHeroCache.serverPos2DPing.Distance(lastPosInfo.position) / myHero.MoveSpeed;
+                        var travelTime = ObjectCache.myHeroCache.serverPos2DPing.Distance(lastPosInfo.position) /
+                                         myHero.MoveSpeed;
 
                         lastPosInfo.endTime = EvadeUtils.TickCount + travelTime * 1000 - 100;
                     }
@@ -1097,9 +1048,7 @@ namespace zzzz
                     CheckHeroInDanger();
 
                     if (EvadeUtils.TickCount > lastStopEvadeTime)
-                    {
                         DodgeSkillShots(); //walking           
-                    }
 
                     CheckLastMoveTo();
                     EvadeSpell.UseEvadeSpell(); //using spells

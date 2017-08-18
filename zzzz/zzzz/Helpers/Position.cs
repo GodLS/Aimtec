@@ -1,13 +1,7 @@
 ﻿using System;
-using Aimtec.SDK.Extensions;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
+using Aimtec.SDK.Extensions;
 using Aimtec.SDK.Menu.Components;
 using Aimtec.SDK.Util.Cache;
 
@@ -17,19 +11,17 @@ namespace zzzz
 {
     public static class Position
     {
-        private static Obj_AI_Hero myHero { get { return ObjectManager.GetLocalPlayer(); } }
+        private static Obj_AI_Hero myHero => ObjectManager.GetLocalPlayer();
 
         public static int CheckPosDangerLevel(this Vector2 pos, float extraBuffer)
         {
             var dangerlevel = 0;
-            foreach (KeyValuePair<int, Spell> entry in SpellDetector.spells)
+            foreach (var entry in SpellDetector.spells)
             {
-                Spell spell = entry.Value;
+                var spell = entry.Value;
 
                 if (pos.InSkillShot(spell, ObjectCache.myHeroCache.boundingRadius + extraBuffer))
-                {
                     dangerlevel += spell.dangerlevel;
-                }
             }
             return dangerlevel;
         }
@@ -38,8 +30,8 @@ namespace zzzz
         {
             if (spell.spellType == SpellType.Line)
             {
-                Vector2 spellPos = spell.currentSpellPosition;
-                Vector2 spellEndPos = predictCollision ? spell.GetSpellEndPosition() : spell.endPos;
+                var spellPos = spell.currentSpellPosition;
+                var spellEndPos = predictCollision ? spell.GetSpellEndPosition() : spell.endPos;
 
                 var projection = position.ProjectOn(spellPos, spellEndPos);
                 return projection.IsOnSegment && projection.SegmentPoint.Distance(position) <= spell.radius + radius;
@@ -48,25 +40,24 @@ namespace zzzz
             if (spell.spellType == SpellType.Circular)
             {
                 if (spell.info.spellName == "VeigarEventHorizon")
-                {
-                    return position.Distance(spell.endPos) <= spell.radius + radius - ObjectCache.myHeroCache.boundingRadius
-                        && position.Distance(spell.endPos) >= spell.radius + radius - ObjectCache.myHeroCache.boundingRadius - 125;
-                }
+                    return position.Distance(spell.endPos) <=
+                           spell.radius + radius - ObjectCache.myHeroCache.boundingRadius
+                           && position.Distance(spell.endPos) >= spell.radius + radius -
+                           ObjectCache.myHeroCache.boundingRadius - 125;
                 if (spell.info.spellName == "DariusCleave")
-                {
-                    return position.Distance(spell.endPos) <= spell.radius + radius - ObjectCache.myHeroCache.boundingRadius
-                           && position.Distance(spell.endPos) >= spell.radius + radius - ObjectCache.myHeroCache.boundingRadius - 220;
-                }
+                    return position.Distance(spell.endPos) <=
+                           spell.radius + radius - ObjectCache.myHeroCache.boundingRadius
+                           && position.Distance(spell.endPos) >= spell.radius + radius -
+                           ObjectCache.myHeroCache.boundingRadius - 220;
 
-                return position.Distance(spell.endPos) <= spell.radius + radius - ObjectCache.myHeroCache.boundingRadius;
+                return position.Distance(spell.endPos) <=
+                       spell.radius + radius - ObjectCache.myHeroCache.boundingRadius;
             }
 
             if (spell.spellType == SpellType.Arc)
             {
                 if (position.isLeftOfLineSegment(spell.startPos, spell.endPos))
-                {
                     return false;
-                }
 
                 var spellRange = spell.startPos.Distance(spell.endPos);
                 var midPoint = spell.startPos + spell.direction * (spellRange / 2);
@@ -75,23 +66,21 @@ namespace zzzz
             }
 
             if (spell.spellType == SpellType.Cone)
-            {
                 return !position.isLeftOfLineSegment(spell.cnStart, spell.cnLeft) &&
                        !position.isLeftOfLineSegment(spell.cnLeft, spell.cnRight) &&
                        !position.isLeftOfLineSegment(spell.cnRight, spell.cnStart);
-            }
 
             return false;
         }
 
         public static bool isLeftOfLineSegment(this Vector2 pos, Vector2 start, Vector2 end)
         {
-            return ((end.X - start.X) * (pos.Y - start.Y) - (end.Y - start.Y) * (pos.X - start.X)) > 0;
+            return (end.X - start.X) * (pos.Y - start.Y) - (end.Y - start.Y) * (pos.X - start.X) > 0;
         }
 
         public static float GetDistanceToTurrets(this Vector2 pos)
         {
-            float minDist = float.MaxValue;
+            var minDist = float.MaxValue;
 
             foreach (var entry in ObjectCache.turrets)
             {
@@ -103,9 +92,7 @@ namespace zzzz
                 }
 
                 if (turret.IsAlly)
-                {
                     continue;
-                }
 
                 var distToTurret = pos.Distance(turret.Position.To2D());
 
@@ -117,10 +104,9 @@ namespace zzzz
 
         public static float GetDistanceToChampions(this Vector2 pos)
         {
-            float minDist = float.MaxValue;
+            var minDist = float.MaxValue;
 
             foreach (var hero in GameObjects.EnemyHeroes)
-            {
                 if (hero != null && hero.IsValid && !hero.IsDead && hero.IsVisible)
                 {
                     var heroPos = hero.ServerPosition.To2D();
@@ -128,24 +114,19 @@ namespace zzzz
 
                     minDist = Math.Min(minDist, dist);
                 }
-            }
 
             return minDist;
         }
 
         public static bool HasExtraAvoidDistance(this Vector2 pos, float extraBuffer)
         {
-            foreach (KeyValuePair<int, Spell> entry in SpellDetector.spells)
+            foreach (var entry in SpellDetector.spells)
             {
-                Spell spell = entry.Value;
+                var spell = entry.Value;
 
                 if (spell.spellType == SpellType.Line)
-                {
                     if (pos.InSkillShot(spell, ObjectCache.myHeroCache.boundingRadius + extraBuffer))
-                    {
                         return true;
-                    }
-                }
             }
             return false;
         }
@@ -159,18 +140,14 @@ namespace zzzz
                 var minComfortDistance = ObjectCache.menuCache.cache["MinComfortZone"].As<MenuSlider>().Value;
 
                 foreach (var hero in GameObjects.EnemyHeroes)
-                {
                     if (hero != null && hero.IsValid && !hero.IsDead && hero.IsVisible)
                     {
                         var heroPos = hero.ServerPosition.To2D();
                         var dist = heroPos.Distance(pos);
 
                         if (minComfortDistance > dist)
-                        {
                             posValue += 2 * (minComfortDistance - dist);
-                        }
                     }
-                }
             }
 
             return posValue;
@@ -178,7 +155,7 @@ namespace zzzz
 
         public static float GetPositionValue(this Vector2 pos)
         {
-            float posValue = pos.Distance(Game.CursorPos.To2D());
+            var posValue = pos.Distance(Game.CursorPos.To2D());
 
             if (ObjectCache.menuCache.cache["PreventDodgingUnderTower"].As<MenuBool>().Enabled)
             {
@@ -186,9 +163,7 @@ namespace zzzz
                 var distanceToTurrets = pos.GetDistanceToTurrets();
 
                 if (turretRange > distanceToTurrets)
-                {
                     posValue += 5 * (turretRange - distanceToTurrets);
-                }
             }
 
             return posValue;
@@ -196,48 +171,44 @@ namespace zzzz
 
         public static bool CheckDangerousPos(this Vector2 pos, float extraBuffer, bool checkOnlyDangerous = false)
         {
-            foreach (KeyValuePair<int, Spell> entry in SpellDetector.spells)
+            foreach (var entry in SpellDetector.spells)
             {
-                Spell spell = entry.Value;
+                var spell = entry.Value;
 
                 if (checkOnlyDangerous && spell.dangerlevel < 3)
-                {
                     continue;
-                }
 
                 if (pos.InSkillShot(spell, ObjectCache.myHeroCache.boundingRadius + extraBuffer))
-                {
                     return true;
-                }
             }
             return false;
         }
 
         public static List<Vector2> GetSurroundingPositions(int maxPosToCheck = 150, int posRadius = 25)
         {
-            List<Vector2> positions = new List<Vector2>();
+            var positions = new List<Vector2>();
 
-            int posChecked = 0;
-            int radiusIndex = 0;
+            var posChecked = 0;
+            var radiusIndex = 0;
 
-            Vector2 heroPoint = ObjectCache.myHeroCache.serverPos2D;
-            Vector2 lastMovePos = Game.CursorPos.To2D();
+            var heroPoint = ObjectCache.myHeroCache.serverPos2D;
+            var lastMovePos = Game.CursorPos.To2D();
 
-            List<PositionInfo> posTable = new List<PositionInfo>();
+            var posTable = new List<PositionInfo>();
 
             while (posChecked < maxPosToCheck)
             {
                 radiusIndex++;
 
-                int curRadius = radiusIndex * (2 * posRadius);
-                int curCircleChecks = (int)Math.Ceiling((2 * Math.PI * (double)curRadius) / (2 * (double)posRadius));
+                var curRadius = radiusIndex * 2 * posRadius;
+                var curCircleChecks = (int) Math.Ceiling(2 * Math.PI * curRadius / (2 * (double) posRadius));
 
-                for (int i = 1; i < curCircleChecks; i++)
+                for (var i = 1; i < curCircleChecks; i++)
                 {
                     posChecked++;
-                    var cRadians = (2 * Math.PI / (curCircleChecks - 1)) * i; //check decimals
-                    var pos = new Vector2((float)Math.Floor(heroPoint.X + curRadius * Math.Cos(cRadians)),
-                                          (float)Math.Floor(heroPoint.Y + curRadius * Math.Sin(cRadians)));
+                    var cRadians = 2 * Math.PI / (curCircleChecks - 1) * i; //check decimals
+                    var pos = new Vector2((float) Math.Floor(heroPoint.X + curRadius * Math.Cos(cRadians)),
+                        (float) Math.Floor(heroPoint.Y + curRadius * Math.Sin(cRadians)));
 
                     positions.Add(pos);
                 }

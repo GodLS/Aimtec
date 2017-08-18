@@ -1,24 +1,13 @@
-﻿using System;
-using Aimtec.SDK.Extensions;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿using System.Linq;
 using Aimtec;
 using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
+
 //using SharpDX;
 
 namespace zzzz.SpecialSpells
 {
-    class Orianna : ChampionPlugin
+    internal class Orianna : ChampionPlugin
     {
-        static Orianna()
-        {
-
-        }
-
         public void LoadSpecialSpell(SpellData spellData)
         {
             if (spellData.spellName == "OrianaIzunaCommand")
@@ -34,9 +23,9 @@ namespace zzzz.SpecialSpells
 
                     ObjectTracker.objTracker.Add(hero.NetworkId, info);
 
-                    Obj_AI_Minion.OnCreate += (obj) => OnCreateObj_OrianaIzunaCommand(obj, hero);
+                    GameObject.OnCreate += obj => OnCreateObj_OrianaIzunaCommand(obj, hero);
                     //Obj_AI_Minion.OnDelete += (obj, args) => OnDeleteObj_OrianaIzunaCommand(obj, args, hero);
-                    Obj_AI_Hero.OnProcessSpellCast += ProcessSpell_OrianaRedactCommand;
+                    Obj_AI_Base.OnProcessSpellCast += ProcessSpell_OrianaRedactCommand;
                     SpellDetector.OnProcessSpecialSpell += ProcessSpell_OrianaIzunaCommand;
                     BuffManager.OnAddBuff += Obj_AI_Base_OnBuffAdd;
                 }
@@ -48,10 +37,8 @@ namespace zzzz.SpecialSpells
         {
             var hero = sender as Obj_AI_Hero;
             if (hero != null && hero.CheckTeam())
-            {
                 if (buff.Name == "orianaghostself")
-                {
-                    foreach (KeyValuePair<int, ObjectTrackerInfo> entry in ObjectTracker.objTracker)
+                    foreach (var entry in ObjectTracker.objTracker)
                     {
                         var info = entry.Value;
                         if (entry.Value.Name == "TheDoomBall")
@@ -60,15 +47,12 @@ namespace zzzz.SpecialSpells
                             info.obj = hero;
                         }
                     }
-                }
-            }
         }
 
         private static void OnCreateObj_OrianaIzunaCommand(GameObject obj, Obj_AI_Hero hero)
         {
             if (obj.Name.Contains("Orianna") && obj.Name.Contains("Ball_Flash_Reverse") && obj.CheckTeam())
-            {
-                foreach (KeyValuePair<int, ObjectTrackerInfo> entry in ObjectTracker.objTracker)
+                foreach (var entry in ObjectTracker.objTracker)
                 {
                     var info = entry.Value;
                     if (entry.Value.Name == "TheDoomBall")
@@ -77,14 +61,12 @@ namespace zzzz.SpecialSpells
                         info.obj = hero;
                     }
                 }
-            }
         }
 
         private static void OnDeleteObj_OrianaIzunaCommand(GameObject obj, Obj_AI_Hero hero)
         {
             if (obj.Name.Contains("Orianna") && obj.Name.Contains("ball_glow_red") && obj.CheckTeam())
-            {
-                foreach (KeyValuePair<int, ObjectTrackerInfo> entry in ObjectTracker.objTracker)
+                foreach (var entry in ObjectTracker.objTracker)
                 {
                     var info = entry.Value;
 
@@ -94,21 +76,19 @@ namespace zzzz.SpecialSpells
                         info.obj = hero;
                     }
                 }
-            }
         }
 
-        private static void ProcessSpell_OrianaRedactCommand(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args)
+        private static void ProcessSpell_OrianaRedactCommand(Obj_AI_Base hero,
+            Obj_AI_BaseMissileClientDataEventArgs args)
         {
             if (!hero.IsValid && hero.Type == GameObjectType.obj_AI_Hero)
                 return;
 
-            var champ = (Obj_AI_Hero)hero;
+            var champ = (Obj_AI_Hero) hero;
 
             if (champ.ChampionName == "Orianna" && champ.CheckTeam())
-            {
                 if (args.SpellData.Name == "OrianaRedactCommand")
-                {
-                    foreach (KeyValuePair<int, ObjectTrackerInfo> entry in ObjectTracker.objTracker)
+                    foreach (var entry in ObjectTracker.objTracker)
                     {
                         var info = entry.Value;
 
@@ -118,16 +98,15 @@ namespace zzzz.SpecialSpells
                             info.obj = args.Target;
                         }
                     }
-                }
-            }
         }
 
-        private static void ProcessSpell_OrianaIzunaCommand(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args, SpellData spellData,
+        private static void ProcessSpell_OrianaIzunaCommand(Obj_AI_Base hero,
+            Obj_AI_BaseMissileClientDataEventArgs args, SpellData spellData,
             SpecialSpellEventArgs specialSpellArgs)
         {
             if (spellData.spellName == "OrianaIzunaCommand")
             {
-                foreach (KeyValuePair<int, ObjectTrackerInfo> entry in ObjectTracker.objTracker)
+                foreach (var entry in ObjectTracker.objTracker)
                 {
                     var info = entry.Value;
 
@@ -136,14 +115,17 @@ namespace zzzz.SpecialSpells
                         if (info.usePosition)
                         {
                             SpellDetector.CreateSpellData(hero, info.position, args.End, spellData, null, 0, false);
-                            SpellDetector.CreateSpellData(hero, info.position, args.End, spellData, null, 150, true, SpellType.Circular, false, spellData.secondaryRadius);
+                            SpellDetector.CreateSpellData(hero, info.position, args.End, spellData, null, 150, true,
+                                SpellType.Circular, false, spellData.secondaryRadius);
                         }
                         else
                         {
                             if (info.obj != null && info.obj.IsValid && !info.obj.IsDead)
                             {
-                                SpellDetector.CreateSpellData(hero, info.obj.Position, args.End, spellData, null, 0, false);
-                                SpellDetector.CreateSpellData(hero, info.obj.Position, args.End, spellData, null, 150, true, SpellType.Circular, false, spellData.secondaryRadius);
+                                SpellDetector.CreateSpellData(hero, info.obj.Position, args.End, spellData, null, 0,
+                                    false);
+                                SpellDetector.CreateSpellData(hero, info.obj.Position, args.End, spellData, null, 150,
+                                    true, SpellType.Circular, false, spellData.secondaryRadius);
                             }
                         }
 
@@ -157,26 +139,24 @@ namespace zzzz.SpecialSpells
 
             if (spellData.spellName == "OrianaDetonateCommand" || spellData.spellName == "OrianaDissonanceCommand")
             {
-                foreach (KeyValuePair<int, ObjectTrackerInfo> entry in ObjectTracker.objTracker)
+                foreach (var entry in ObjectTracker.objTracker)
                 {
                     var info = entry.Value;
 
                     if (entry.Value.Name == "TheDoomBall")
-                    {
                         if (info.usePosition)
                         {
-                            Vector3 endPos2 = info.position;
+                            var endPos2 = info.position;
                             SpellDetector.CreateSpellData(hero, endPos2, endPos2, spellData, null, 0);
                         }
                         else
                         {
                             if (info.obj != null && info.obj.IsValid && !info.obj.IsDead)
                             {
-                                Vector3 endPos2 = info.obj.Position;
+                                var endPos2 = info.obj.Position;
                                 SpellDetector.CreateSpellData(hero, endPos2, endPos2, spellData, null, 0);
                             }
                         }
-                    }
                 }
 
                 specialSpellArgs.noProcess = true;

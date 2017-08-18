@@ -1,24 +1,13 @@
 ﻿using System;
-using Aimtec.SDK.Extensions;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
+using Aimtec.SDK.Extensions;
+
 //using SharpDX;
 
 namespace zzzz.SpecialSpells
 {
-    class Xerath : ChampionPlugin
+    internal class Xerath : ChampionPlugin
     {
-        static Xerath()
-        {
-
-        }
-
         public void LoadSpecialSpell(SpellData spellData)
         {
             if (spellData.spellName == "xeratharcanopulse2")
@@ -27,9 +16,10 @@ namespace zzzz.SpecialSpells
             }
         }
 
-        private static void ProcessSpell_XerathArcanopulse2(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args, SpellData spellData, SpecialSpellEventArgs specialSpellArgs)
+        private static void ProcessSpell_XerathArcanopulse2(Obj_AI_Base hero,
+            Obj_AI_BaseMissileClientDataEventArgs args, SpellData spellData, SpecialSpellEventArgs specialSpellArgs)
         {
-            if (args.SpellData.Name == "XerathArcanopulseChargeUp")// || spellData.spellName == "xeratharcanopulse2")
+            if (args.SpellData.Name == "XerathArcanopulseChargeUp") // || spellData.spellName == "xeratharcanopulse2")
             {
                 // Not sure with CastEndTime
                 var castTime = -1 * (hero.SpellBook.CastEndTime - Game.ClockTime) * 1000;

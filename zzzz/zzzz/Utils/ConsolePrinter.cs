@@ -1,20 +1,10 @@
 ﻿using System;
-using Aimtec.SDK.Extensions;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace zzzz
 {
     public static class ConsolePrinter
     {
-        private static float lastPrintTime = 0;
-
-        static ConsolePrinter()
-        {
-
-        }
+        private static float lastPrintTime;
 
         public static void Print(string str)
         {

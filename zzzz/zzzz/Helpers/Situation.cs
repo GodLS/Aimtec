@@ -1,14 +1,6 @@
-﻿using System;
-using Aimtec.SDK.Extensions;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
+﻿using Aimtec;
 using Aimtec.SDK.Events;
+using Aimtec.SDK.Extensions;
 using Aimtec.SDK.Menu.Components;
 
 //using SharpDX;
@@ -18,11 +10,6 @@ namespace zzzz
     public static class Situation
     {
         private static Obj_AI_Hero myHero => ObjectManager.GetLocalPlayer();
-
-        static Situation()
-        {
-
-        }
 
         public static bool CheckTeam(this Obj_AI_Base unit)
         {
@@ -61,16 +48,12 @@ namespace zzzz
                 if (curDistToEnemies < distance)
                 {
                     if (curDistToEnemies > posDistToEnemies)
-                    {
                         return true;
-                    }
                 }
                 else
                 {
                     if (posDistToEnemies < distance)
-                    {
                         return true;
-                    }
                 }
             }
 
@@ -80,9 +63,7 @@ namespace zzzz
         public static bool IsUnderTurret(this Vector2 pos, bool checkEnemy = true)
         {
             if (!ObjectCache.menuCache.cache["PreventDodgingUnderTower"].As<MenuBool>().Enabled)
-            {
                 return false;
-            }
 
             var turretRange = 875 + ObjectCache.myHeroCache.boundingRadius;
 
@@ -96,15 +77,11 @@ namespace zzzz
                 }
 
                 if (checkEnemy && turret.IsAlly)
-                {
                     continue;
-                }
 
                 var distToTurret = pos.Distance(turret.Position.To2D());
                 if (distToTurret <= turretRange)
-                {
                     return true;
-                }
             }
 
             return false;
@@ -115,29 +92,12 @@ namespace zzzz
             // fix
             if (ObjectCache.menuCache.cache["DontDodgeKeyEnabled"].As<MenuBool>().Enabled &&
                 ObjectCache.menuCache.cache["DontDodgeKey"].As<MenuKeyBind>().Enabled)
-            {
                 return false;
-            }
 
             if (ObjectCache.menuCache.cache["DodgeSkillShots"].As<MenuKeyBind>().Enabled == false
                 || CommonChecks()
-                )
-            {
-                //has spellshield - sivir, noc, morgana
-                //vlad pool
-                //tryndamere r?
-                //kayle ult buff?
-                //hourglass
-                //invulnerable
-                //rooted
-                //sion ult -> tenacity = 100?
-                //stunned
-                //elise e
-                //zilean ulted
-                //isdashing
-
+            )
                 return false;
-            }
 
             return true;
         }
@@ -147,16 +107,12 @@ namespace zzzz
             // fix
             if (ObjectCache.menuCache.cache["DontDodgeKeyEnabled"].As<MenuBool>().Enabled &&
                 ObjectCache.menuCache.cache["DontDodgeKey"].As<MenuKeyBind>().Enabled)
-            {
                 return false;
-            }
 
             if (ObjectCache.menuCache.cache["ActivateEvadeSpells"].As<MenuKeyBind>().Enabled == false
                 || CommonChecks()
                 || Evade.lastWindupTime - EvadeUtils.TickCount > 0)
-            {
                 return false;
-            }
 
             return true;
         }
@@ -165,22 +121,21 @@ namespace zzzz
         {
             // fix
             return
-
                 Evade.isChanneling
-                || (ObjectCache.menuCache.cache["DodgeOnlyOnComboKeyEnabled"].As<MenuBool>().Value == true &&
-                    ObjectCache.menuCache.cache["DodgeComboKey"].As<MenuKeyBind>().Enabled == false)
+                || ObjectCache.menuCache.cache["DodgeOnlyOnComboKeyEnabled"].As<MenuBool>().Value &&
+                ObjectCache.menuCache.cache["DodgeComboKey"].As<MenuKeyBind>().Enabled == false
                 || myHero.IsDead
                 || myHero.IsInvulnerable
                 || myHero.IsTargetable == false
                 || HasSpellShield(myHero)
                 || ChampionSpecificChecks()
                 || myHero.IsDashing()
-                || Evade.hasGameEnded == true;
+                || Evade.hasGameEnded;
         }
 
         public static bool ChampionSpecificChecks()
         {
-            return (myHero.ChampionName == "Sion" && myHero.HasBuff("SionR"))
+            return myHero.ChampionName == "Sion" && myHero.HasBuff("SionR")
                 ;
 
             //Untargetable
@@ -195,35 +150,24 @@ namespace zzzz
         public static bool HasSpellShield(Obj_AI_Hero unit)
         {
             if (ObjectManager.GetLocalPlayer().HasBuffOfType(BuffType.SpellShield))
-            {
                 return true;
-            }
 
             if (ObjectManager.GetLocalPlayer().HasBuffOfType(BuffType.SpellImmunity))
-            {
                 return true;
-            }
 
             //Sivir E
-            if (unit.LastCastedSpellName() == "SivirE" && (EvadeUtils.TickCount - Evade.lastSpellCastTime) < 300)
-            {
+            if (unit.LastCastedSpellName() == "SivirE" && EvadeUtils.TickCount - Evade.lastSpellCastTime < 300)
                 return true;
-            }
 
             //Morganas E
-            if (unit.LastCastedSpellName() == "BlackShield" && (EvadeUtils.TickCount - Evade.lastSpellCastTime) < 300)
-            {
+            if (unit.LastCastedSpellName() == "BlackShield" && EvadeUtils.TickCount - Evade.lastSpellCastTime < 300)
                 return true;
-            }
 
             //Nocturnes E
-            if (unit.LastCastedSpellName() == "NocturneShit" && (EvadeUtils.TickCount - Evade.lastSpellCastTime) < 300)
-            {
+            if (unit.LastCastedSpellName() == "NocturneShit" && EvadeUtils.TickCount - Evade.lastSpellCastTime < 300)
                 return true;
-            }
 
             return false;
         }
-
     }
 }

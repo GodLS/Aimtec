@@ -1,31 +1,24 @@
-﻿using System;
+﻿using Aimtec;
 using Aimtec.SDK.Extensions;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
+
 //using SharpDX;
 
 namespace zzzz.SpecialSpells
 {
-    class Graves : ChampionPlugin
+    internal class Graves : ChampionPlugin
     {
         public void LoadSpecialSpell(SpellData spellData)
         {
             if (spellData.spellName == "GravesQLineSpell")
-            {
                 SpellDetector.OnProcessSpecialSpell += SpellDetector_OnProcessSpecialSpell;
-            }
         }
 
-        private void SpellDetector_OnProcessSpecialSpell(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args, SpellData spellData, SpecialSpellEventArgs specialSpellArgs)
+        private void SpellDetector_OnProcessSpecialSpell(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args,
+            SpellData spellData, SpecialSpellEventArgs specialSpellArgs)
         {
             if (spellData.spellName == "GravesQLineSpell")
             {
-                var newData = (SpellData)spellData.Clone();
+                var newData = (SpellData) spellData.Clone();
                 newData.isPerpendicular = true;
                 newData.secondaryRadius = 255f;
                 newData.updatePosition = false;
@@ -42,9 +35,7 @@ namespace zzzz.SpecialSpells
 
                 var w = EvadeHelper.GetNearWallPoint(start, end);
                 if (w != default(Vector3))
-                {
                     end = w;
-                }
 
                 //SpellDetector.CreateSpellData(hero, hero.ServerPosition, end, spellData);
                 SpellDetector.CreateSpellData(hero, hero.ServerPosition, end, newData);

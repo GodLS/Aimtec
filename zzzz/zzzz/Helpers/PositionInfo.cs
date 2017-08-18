@@ -1,40 +1,34 @@
 ﻿using System;
-using Aimtec.SDK.Extensions;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
+using Aimtec.SDK.Extensions;
+
 //using SharpDX;
 
 namespace zzzz
 {
     public class PositionInfo
     {
-        private static Obj_AI_Hero myHero { get { return ObjectManager.GetLocalPlayer(); } }
-
-        public int posDangerLevel = 0;
-        public int posDangerCount = 0;
-        public bool isDangerousPos = false;
-        public float distanceToMouse = 0;
-        public List<int> dodgeableSpells = new List<int>();
-        public List<int> undodgeableSpells = new List<int>();
-        public List<int> spellList = new List<int>();
-        public Vector2 position;
-        public float timestamp;
-        public float endTime = 0;
-        public bool hasExtraDistance = false;
         public float closestDistance = float.MaxValue;
-        public float intersectionTime = float.MaxValue;
-        public bool rejectPosition = false;
-        public float posDistToChamps = float.MaxValue;
+        public float distanceToMouse;
+        public List<int> dodgeableSpells = new List<int>();
+        public float endTime = 0;
         public bool hasComfortZone = true;
-        public Obj_AI_Base target = null;
+        public bool hasExtraDistance = false;
+        public float intersectionTime = float.MaxValue;
+        public bool isDangerousPos;
+        public int posDangerCount;
+
+        public int posDangerLevel;
+        public float posDistToChamps = float.MaxValue;
+        public Vector2 position;
         public bool recalculatedPath = false;
+        public bool rejectPosition = false;
         public float speed = 0;
+        public List<int> spellList = new List<int>();
+        public Obj_AI_Base target = null;
+        public float timestamp;
+        public List<int> undodgeableSpells = new List<int>();
 
         public PositionInfo(
             Vector2 position,
@@ -52,7 +46,7 @@ namespace zzzz
             this.distanceToMouse = distanceToMouse;
             this.dodgeableSpells = dodgeableSpells;
             this.undodgeableSpells = undodgeableSpells;
-            this.timestamp = EvadeUtils.TickCount;
+            timestamp = EvadeUtils.TickCount;
         }
 
         public PositionInfo(
@@ -63,8 +57,10 @@ namespace zzzz
             this.position = position;
             this.isDangerousPos = isDangerousPos;
             this.distanceToMouse = distanceToMouse;
-            this.timestamp = EvadeUtils.TickCount;
+            timestamp = EvadeUtils.TickCount;
         }
+
+        private static Obj_AI_Hero myHero => ObjectManager.GetLocalPlayer();
 
         public static PositionInfo SetAllDodgeable()
         {
@@ -73,12 +69,12 @@ namespace zzzz
 
         public static PositionInfo SetAllDodgeable(Vector2 position)
         {
-            List<int> dodgeableSpells = new List<int>();
-            List<int> undodgeableSpells = new List<int>();
+            var dodgeableSpells = new List<int>();
+            var undodgeableSpells = new List<int>();
 
-            foreach (KeyValuePair<int, Spell> entry in SpellDetector.spells)
+            foreach (var entry in SpellDetector.spells)
             {
-                Spell spell = entry.Value;
+                var spell = entry.Value;
                 dodgeableSpells.Add(entry.Key);
             }
 
@@ -94,15 +90,15 @@ namespace zzzz
 
         public static PositionInfo SetAllUndodgeable()
         {
-            List<int> dodgeableSpells = new List<int>();
-            List<int> undodgeableSpells = new List<int>();
+            var dodgeableSpells = new List<int>();
+            var undodgeableSpells = new List<int>();
 
             var posDangerLevel = 0;
             var posDangerCount = 0;
 
-            foreach (KeyValuePair<int, Spell> entry in SpellDetector.spells)
+            foreach (var entry in SpellDetector.spells)
             {
-                Spell spell = entry.Value;
+                var spell = entry.Value;
                 undodgeableSpells.Add(entry.Key);
 
                 var spellDangerLevel = spell.dangerlevel;
@@ -124,24 +120,20 @@ namespace zzzz
 
     public static class PositionInfoExtensions
     {
-        public static Obj_AI_Hero myHero { get { return ObjectManager.GetLocalPlayer(); } }
+        public static Obj_AI_Hero myHero => ObjectManager.GetLocalPlayer();
 
         public static int GetHighestSpellID(this PositionInfo posInfo)
         {
             if (posInfo == null)
                 return 0;
 
-            int highest = 0;
+            var highest = 0;
 
             foreach (var spellID in posInfo.undodgeableSpells)
-            {
                 highest = Math.Max(highest, spellID);
-            }
 
             foreach (var spellID in posInfo.dodgeableSpells)
-            {
                 highest = Math.Max(highest, spellID);
-            }
 
             return highest;
         }
@@ -162,13 +154,12 @@ namespace zzzz
             }
             else
             {
-                posInfo = EvadeHelper.CanHeroWalkToPos(ObjectCache.myHeroCache.serverPos2D, ObjectCache.myHeroCache.moveSpeed, 0, 0, false);
+                posInfo = EvadeHelper.CanHeroWalkToPos(ObjectCache.myHeroCache.serverPos2D,
+                    ObjectCache.myHeroCache.moveSpeed, 0, 0, false);
             }
 
             if (posInfo.posDangerCount < newPosInfo.posDangerCount)
-            {
                 return false;
-            }
 
             return true;
         }
@@ -184,17 +175,14 @@ namespace zzzz
             }
             else
             {
-                posInfo = EvadeHelper.CanHeroWalkToPos(ObjectCache.myHeroCache.serverPos2D, ObjectCache.myHeroCache.moveSpeed, 0, 0, false);
+                posInfo = EvadeHelper.CanHeroWalkToPos(ObjectCache.myHeroCache.serverPos2D,
+                    ObjectCache.myHeroCache.moveSpeed, 0, 0, false);
             }
 
             if (posInfo.posDangerCount < newPosInfo.posDangerCount)
-            {
                 return posInfo;
-            }
 
             return newPosInfo;
         }
     }
-
-
 }

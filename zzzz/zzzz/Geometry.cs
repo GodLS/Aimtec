@@ -1,17 +1,14 @@
-﻿using Aimtec;
-using Aimtec.SDK.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Aimtec.SDK.Util.ThirdParty;
+﻿using System.Collections.Generic;
 using System.Drawing;
+using Aimtec;
+using Aimtec.SDK.Extensions;
+
 namespace zzzz
 {
     public class Geometry
     {
         private const int CircleLineSegmentN = 22;
+
         public class Polygon
         {
             public List<Vector3> Points = new List<Vector3>();
@@ -25,7 +22,7 @@ namespace zzzz
             {
                 for (var i = 0; i <= Points.Count - 1; i++)
                 {
-                    var nextIndex = (Points.Count - 1 == i) ? 0 : (i + 1);
+                    var nextIndex = Points.Count - 1 == i ? 0 : i + 1;
                     Render.Line(Points[i].ToScreenPosition(), Points[nextIndex].ToScreenPosition(), width, true, color);
                 }
             }

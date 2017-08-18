@@ -1,13 +1,7 @@
 ﻿using System;
-using Aimtec.SDK.Extensions;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
 using Aimtec.SDK.Extensions;
 
 //using SharpDX;
@@ -17,20 +11,13 @@ namespace zzzz
     public static class EvadeUtils
     {
         public static Random random = new Random(DateTime.Now.Millisecond);
-        private static DateTime assemblyLoadTime = DateTime.Now;
+        private static readonly DateTime assemblyLoadTime = DateTime.Now;
 
         static EvadeUtils()
         {
-
         }
 
-        public static float TickCount
-        {
-            get
-            {
-                return (int)DateTime.Now.Subtract(assemblyLoadTime).TotalMilliseconds;
-            }
-        }
+        public static float TickCount => (int) DateTime.Now.Subtract(assemblyLoadTime).TotalMilliseconds;
 
         public static List<Vector2> PathToVector2(this Vector3[] path)
         {
@@ -52,7 +39,7 @@ namespace zzzz
                     path.Add(hero.ServerPosition.To2D());
                     path.AddRange(hero.Path.Select(point => point.To2D()));
 
-                    var finalPath = EvadeUtils.CutPath(path, hero, delay);
+                    var finalPath = path.CutPath(hero, delay);
 
                     return finalPath.Last();
                 }
@@ -66,9 +53,7 @@ namespace zzzz
         public static List<Vector2> CutPath(this List<Vector2> path, Obj_AI_Base unit, float delay, float speed = 0)
         {
             if (speed == 0)
-            {
                 speed = unit.MoveSpeed;
-            }
 
             var dist = speed * delay / 1000;
             return CutPath(path, dist);
@@ -86,9 +71,7 @@ namespace zzzz
             var Distance = distance;
 
             if (path.Count > 0)
-            {
                 result.Add(path.First());
-            }
 
             for (var i = 0; i < path.Count - 1; i++)
             {
@@ -98,13 +81,10 @@ namespace zzzz
                     result.Add(path[i] + Distance * (path[i + 1] - path[i]).Normalized());
                     break;
                 }
-                else
-                {
-                    result.Add(path[i + 1]);
-                }
+                result.Add(path[i + 1]);
                 Distance -= dist;
             }
-            return result.Count > 0 ? result : new List<Vector2> { path.Last() };
+            return result.Count > 0 ? result : new List<Vector2> {path.Last()};
         }
 
         public static List<Vector2> CutPathPrev(this List<Vector2> path, float distance)
@@ -120,15 +100,13 @@ namespace zzzz
                     result.Add(path[i] + Distance * (path[i + 1] - path[i]).Normalized());
 
                     for (var j = i + 1; j < path.Count; j++)
-                    {
                         result.Add(path[j]);
-                    }
 
                     break;
                 }
                 Distance -= dist;
             }
-            return result.Count > 0 ? result : new List<Vector2> { path.Last() };
+            return result.Count > 0 ? result : new List<Vector2> {path.Last()};
         }
 
         public static Vector2 ExtendDir(this Vector2 pos, Vector2 dir, float distance)

@@ -1,14 +1,10 @@
 ﻿using System;
-using Aimtec.SDK.Extensions;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-
 using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
+using Aimtec.SDK.Extensions;
 using Aimtec.SDK.Menu.Components;
-using Aimtec.SDK.Util;
+using Aimtec.SDK.Util.Cache;
 
 //using SharpDX;
 
@@ -16,49 +12,43 @@ namespace zzzz
 {
     public class Spell
     {
-        public float startTime;
-        public float endTime;
-        public Vector2 startPos;
-        public Vector2 endPos;
-        public Vector2 direction;
-        public float height;
-        public int heroID;
-        public int projectileID;
-        public SpellData info;
-        public int spellID;
-        public GameObject spellObject = null;
-        public SpellType spellType;
-
         public Vector2 cnLeft;
         public Vector2 cnRight;
         public Vector2 cnStart;
-        public Vector2 currentSpellPosition = Vector2.Zero;
         public Vector2 currentNegativePosition = Vector2.Zero;
-        public Vector2 predictedEndPos = Vector2.Zero;
-
-        public float radius = 0;
+        public Vector2 currentSpellPosition = Vector2.Zero;
         public int dangerlevel = 1;
+        public Vector2 direction;
+        public Vector2 endPos;
+        public float endTime;
 
         public float evadeTime = float.MinValue;
+        public float height;
+        public int heroID;
+        public SpellData info;
+        public Vector2 predictedEndPos = Vector2.Zero;
+        public int projectileID;
+
+        public float radius = 0;
         public float spellHitTime = float.MinValue;
-
-        public Spell()
-        {
-
-        }
+        public int spellID;
+        public GameObject spellObject = null;
+        public SpellType spellType;
+        public Vector2 startPos;
+        public float startTime;
     }
 
     public static class SpellExtensions
     {
         public static float GetSpellRadius(this Spell spell)
         {
-            var radius = Evade.spellMenu[spell.info.charName + spell.info.spellName + "Settings"][spell.info.spellName + "SpellRadius"].As<MenuSlider>().Value;
+            var radius =
+                Evade.spellMenu[spell.info.charName + spell.info.spellName + "Settings"][
+                    spell.info.spellName + "SpellRadius"].As<MenuSlider>().Value;
             var extraRadius = ObjectCache.menuCache.cache["ExtraSpellRadius"].As<MenuSlider>().Value;
 
             if (spell.info.hasEndExplosion && spell.spellType == SpellType.Circular)
-            {
                 return spell.info.secondaryRadius + extraRadius;
-            }
 
             if (spell.spellType == SpellType.Arc)
             {
@@ -68,12 +58,14 @@ namespace zzzz
                 return arcRadius;
             }
 
-            return (float)(radius + extraRadius);
+            return radius + extraRadius;
         }
 
         public static int GetSpellDangerLevel(this Spell spell)
         {
-            var dangerStr = Evade.spellMenu[spell.info.charName + spell.info.spellName + "Settings"][spell.info.spellName + "DangerLevel"].As<MenuList>().SelectedItem;
+            var dangerStr =
+                Evade.spellMenu[spell.info.charName + spell.info.spellName + "Settings"][
+                    spell.info.spellName + "DangerLevel"].As<MenuList>().SelectedItem;
 
             var dangerlevel = 1;
 
@@ -145,13 +137,10 @@ namespace zzzz
             }
 
             if (spell.spellType == SpellType.Circular)
-            {
                 return spell.endPos;
-            }
 
             if (spell.spellType == SpellType.Cone)
             {
-
             }
 
             return Vector2.Zero;
@@ -160,54 +149,39 @@ namespace zzzz
         public static Obj_AI_Base CheckSpellCollision(this Spell spell, bool ignoreSelf = true)
         {
             if (spell.info.collisionObjects.Count() < 1)
-            {
                 return null;
-            }
 
-            List<Obj_AI_Base> collisionCandidates = new List<Obj_AI_Base>();
+            var collisionCandidates = new List<Obj_AI_Base>();
             var spellPos = spell.currentSpellPosition;
             var distanceToHero = spellPos.Distance(ObjectCache.myHeroCache.serverPos2D);
 
             if (spell.info.collisionObjects.Contains(CollisionObjectType.EnemyChampions))
-            {
                 foreach (var hero in GameObjects.AllyHeroes
                     .Where(h => h.IsValidTarget(distanceToHero, false, true, spellPos.To3D())))
                 {
                     if (ignoreSelf && hero.IsMe)
-                    {
                         continue;
-                    }
 
                     collisionCandidates.Add(hero);
                 }
-            }
 
             if (spell.info.collisionObjects.Contains(CollisionObjectType.EnemyMinions))
-            {
-
-                // fix - maybe dont  add boudning radius
                 foreach (var minion in ObjectManager.Get<Obj_AI_Minion>()
-                    .Where(h => h.Team == Evade.myHero.Team && h.IsValidTarget(distanceToHero, false, true, spellPos.To3D())))
+                    .Where(h => h.Team == Evade.myHero.Team &&
+                                h.IsValidTarget(distanceToHero, false, true, spellPos.To3D())))
                 {
                     if (minion.UnitSkinName.ToLower() == "teemomushroom"
                         || minion.UnitSkinName.ToLower() == "shacobox")
-                    {
                         continue;
-                    }
 
                     collisionCandidates.Add(minion);
                 }
-            }
 
             var sortedCandidates = collisionCandidates.OrderBy(h => h.Distance(spellPos));
 
             foreach (var candidate in sortedCandidates)
-            {
                 if (candidate.ServerPosition.To2D().InSkillShot(spell, candidate.BoundingRadius, false))
-                {
                     return candidate;
-                }
-            }
 
             return null;
         }
@@ -230,18 +204,21 @@ namespace zzzz
             return float.MaxValue;
         }
 
-        public static bool CanHeroEvade(this Spell spell, Obj_AI_Base hero, out float rEvadeTime, out float rSpellHitTime)
+        public static bool CanHeroEvade(this Spell spell, Obj_AI_Base hero, out float rEvadeTime,
+            out float rSpellHitTime)
         {
             var heroPos = hero.ServerPosition.To2D();
             float evadeTime = 0;
             float spellHitTime = 0;
-            float speed = hero.MoveSpeed;
+            var speed = hero.MoveSpeed;
             float delay = 0;
 
-            var moveBuff = EvadeSpell.evadeSpells.OrderBy(s => s.dangerlevel).FirstOrDefault(s => s.evadeType == EvadeType.MovementSpeedBuff);
+            var moveBuff = EvadeSpell.evadeSpells.OrderBy(s => s.dangerlevel)
+                .FirstOrDefault(s => s.evadeType == EvadeType.MovementSpeedBuff);
             if (moveBuff != null && EvadeSpell.ShouldUseMovementBuff(spell))
             {
-                speed += speed * moveBuff.speedArray[ObjectManager.GetLocalPlayer().GetSpell(moveBuff.spellKey).Level - 1] / 100;
+                speed += speed * moveBuff.speedArray[
+                             ObjectManager.GetLocalPlayer().GetSpell(moveBuff.spellKey).Level - 1] / 100;
                 delay += (moveBuff.spellDelay > 50 ? moveBuff.spellDelay : 0) + ObjectCache.gamePing;
             }
 
@@ -283,13 +260,15 @@ namespace zzzz
             var pSpellDir = spell.direction.Perpendicular();
             var spellRadius = spell.radius;
             var spellPos = spell.currentSpellPosition - spellDir * myBoundingRadius; //leave some space at back of spell
-            var endPos = spell.GetSpellEndPosition() + spellDir * myBoundingRadius; //leave some space at the front of spell
+            var endPos =
+                spell.GetSpellEndPosition() + spellDir * myBoundingRadius; //leave some space at the front of spell
 
             var startRightPos = spellPos + pSpellDir * (spellRadius + myBoundingRadius);
             var endLeftPos = endPos - pSpellDir * (spellRadius + myBoundingRadius);
 
 
-            return new BoundingBox(new Vector3(endLeftPos.X, endLeftPos.Y, -1), new Vector3(startRightPos.X, startRightPos.Y, 1));
+            return new BoundingBox(new Vector3(endLeftPos.X, endLeftPos.Y, -1),
+                new Vector3(startRightPos.X, startRightPos.Y, 1));
         }
 
         public static Vector2 GetSpellEndPosition(this Spell spell)
@@ -307,27 +286,21 @@ namespace zzzz
         public static Vector2 GetCurrentSpellPosition(this Spell spell, bool allowNegative = false, float delay = 0,
             float extraDistance = 0)
         {
-            Vector2 spellPos = spell.startPos;
+            var spellPos = spell.startPos;
 
             if (spell.info.updatePosition == false)
-            {
                 return spellPos;
-            }
 
             if (spell.spellType == SpellType.Line || spell.spellType == SpellType.Arc)
             {
                 var spellTime = EvadeUtils.TickCount - spell.startTime -
-                    spell.info.spellDelay - Math.Max(0, spell.info.extraEndTime);
+                                spell.info.spellDelay - Math.Max(0, spell.info.extraEndTime);
 
                 if (spell.info.projectileSpeed == float.MaxValue)
-                {
                     return spell.startPos;
-                }
 
                 if (spellTime >= 0 || allowNegative)
-                {
                     spellPos = spell.startPos + spell.direction * spell.info.projectileSpeed * (spellTime / 1000);
-                }
             }
             else if (spell.spellType == SpellType.Circular || spell.spellType == SpellType.Cone)
             {
@@ -335,22 +308,17 @@ namespace zzzz
             }
 
             if (spell.spellObject != null && spell.spellObject.IsValid && spell.spellObject.IsVisible &&
-                spell.spellObject.Position.To2D().Distance(ObjectCache.myHeroCache.serverPos2D) < spell.info.range + 1000)
-            {
+                spell.spellObject.Position.To2D().Distance(ObjectCache.myHeroCache.serverPos2D) <
+                spell.info.range + 1000)
                 spellPos = spell.spellObject.Position.To2D();
-            }
 
             if (delay > 0 && spell.info.projectileSpeed != float.MaxValue
-                          && spell.spellType == SpellType.Line)
-            {
+                && spell.spellType == SpellType.Line)
                 spellPos = spellPos + spell.direction * spell.info.projectileSpeed * (delay / 1000);
-            }
 
             if (extraDistance > 0 && spell.info.projectileSpeed != float.MaxValue
-                          && spell.spellType == SpellType.Line)
-            {
+                && spell.spellType == SpellType.Line)
                 spellPos = spellPos + spell.direction * extraDistance;
-            }
 
             return spellPos;
         }
@@ -361,50 +329,53 @@ namespace zzzz
             var spellDir = spell.direction;
             var pSpellDir = spell.direction.Perpendicular();
             var spellRadius = spell.radius;
-            var spellPos = spell.currentSpellPosition;// -spellDir * myBoundingRadius; //leave some space at back of spell
-            var endPos = spell.GetSpellEndPosition();// +spellDir * myBoundingRadius; //leave some space at the front of spell
+            var spellPos =
+                spell.currentSpellPosition; // -spellDir * myBoundingRadius; //leave some space at back of spell
+            var endPos =
+                spell.GetSpellEndPosition(); // +spellDir * myBoundingRadius; //leave some space at the front of spell
 
             var startRightPos = spellPos + pSpellDir * (spellRadius + myBoundingRadius);
             var startLeftPos = spellPos - pSpellDir * (spellRadius + myBoundingRadius);
             var endRightPos = endPos + pSpellDir * (spellRadius + myBoundingRadius);
             var endLeftPos = endPos - pSpellDir * (spellRadius + myBoundingRadius);
 
-            bool int1 = MathUtils.CheckLineIntersection(a, b, startRightPos, startLeftPos);
-            bool int2 = MathUtils.CheckLineIntersection(a, b, endRightPos, endLeftPos);
-            bool int3 = MathUtils.CheckLineIntersection(a, b, startRightPos, endRightPos);
-            bool int4 = MathUtils.CheckLineIntersection(a, b, startLeftPos, endLeftPos);
+            var int1 = MathUtils.CheckLineIntersection(a, b, startRightPos, startLeftPos);
+            var int2 = MathUtils.CheckLineIntersection(a, b, endRightPos, endLeftPos);
+            var int3 = MathUtils.CheckLineIntersection(a, b, startRightPos, endRightPos);
+            var int4 = MathUtils.CheckLineIntersection(a, b, startLeftPos, endLeftPos);
 
             if (int1 || int2 || int3 || int4)
-            {
                 return true;
-            }
 
             return false;
         }
 
-        public static bool LineIntersectLinearSpellEx(this Spell spell, Vector2 a, Vector2 b, out Vector2 intersection) //edited
+        public static bool LineIntersectLinearSpellEx(this Spell spell, Vector2 a, Vector2 b,
+            out Vector2 intersection) //edited
         {
             var myBoundingRadius = ObjectManager.GetLocalPlayer().BoundingRadius;
             var spellDir = spell.direction;
             var pSpellDir = spell.direction.Perpendicular();
             var spellRadius = spell.radius;
             var spellPos = spell.currentSpellPosition - spellDir * myBoundingRadius; //leave some space at back of spell
-            var endPos = spell.GetSpellEndPosition() + spellDir * myBoundingRadius; //leave some space at the front of spell
+            var endPos =
+                spell.GetSpellEndPosition() + spellDir * myBoundingRadius; //leave some space at the front of spell
 
             var startRightPos = spellPos + pSpellDir * (spellRadius + myBoundingRadius);
             var startLeftPos = spellPos - pSpellDir * (spellRadius + myBoundingRadius);
             var endRightPos = endPos + pSpellDir * (spellRadius + myBoundingRadius);
             var endLeftPos = endPos - pSpellDir * (spellRadius + myBoundingRadius);
 
-            List<Vector2Extensions.IntersectionResult> intersects = new List<Vector2Extensions.IntersectionResult>();
-            Vector2 heroPos = ObjectManager.GetLocalPlayer().ServerPosition.To2D();
+            var intersects = new List<Vector2Extensions.IntersectionResult>();
+            var heroPos = ObjectManager.GetLocalPlayer().ServerPosition.To2D();
 
             intersects.Add(a.Intersection(b, startRightPos, startLeftPos));
             intersects.Add(a.Intersection(b, endRightPos, endLeftPos));
             intersects.Add(a.Intersection(b, startRightPos, endRightPos));
             intersects.Add(a.Intersection(b, startLeftPos, endLeftPos));
 
-            var sortedIntersects = intersects.Where(i => i.Intersects).OrderBy(i => i.Point.Distance(heroPos)); //Get first intersection
+            var sortedIntersects = intersects.Where(i => i.Intersects)
+                .OrderBy(i => i.Point.Distance(heroPos)); //Get first intersection
 
             if (sortedIntersects.Count() > 0)
             {
@@ -415,6 +386,5 @@ namespace zzzz
             intersection = Vector2.Zero;
             return false;
         }
-
     }
 }

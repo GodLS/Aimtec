@@ -1,26 +1,18 @@
-﻿using System;
+﻿using Aimtec;
 using Aimtec.SDK.Extensions;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
 
 namespace zzzz.SpecialSpells
 {
-    class Yorick : ChampionPlugin
+    internal class Yorick : ChampionPlugin
     {
         public void LoadSpecialSpell(SpellData spellData)
         {
             if (spellData.spellName == "YorickE")
-            {
                 SpellDetector.OnProcessSpecialSpell += SpellDetector_OnProcessSpecialSpell;
-            }
         }
 
-        private void SpellDetector_OnProcessSpecialSpell(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args, SpellData spellData, SpecialSpellEventArgs specialSpellArgs)
+        private void SpellDetector_OnProcessSpecialSpell(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args,
+            SpellData spellData, SpecialSpellEventArgs specialSpellArgs)
         {
             if (spellData.spellName == "YorickE")
             {

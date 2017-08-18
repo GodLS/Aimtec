@@ -1,24 +1,12 @@
-﻿using System;
+﻿using Aimtec;
 using Aimtec.SDK.Extensions;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
 //using SharpDX;
 
 namespace zzzz.SpecialSpells
 {
-    class Lulu : ChampionPlugin
+    internal class Lulu : ChampionPlugin
     {
-        static Lulu()
-        {
-
-        }
-
         public void LoadSpecialSpell(SpellData spellData)
         {
             if (spellData.spellName == "LuluQ")
@@ -30,50 +18,40 @@ namespace zzzz.SpecialSpells
 
         private static void GetLuluPix()
         {
-            bool gotObj = false;
+            var gotObj = false;
 
             foreach (var obj in ObjectManager.Get<Obj_AI_Minion>())
-            {
                 if (obj != null && obj.IsValid && obj.UnitSkinName == "lulufaerie" && obj.CheckTeam())
                 {
                     gotObj = true;
 
                     if (!ObjectTracker.objTracker.ContainsKey(obj.NetworkId))
-                    {
                         ObjectTracker.objTracker.Add(obj.NetworkId, new ObjectTrackerInfo(obj, "RobotBuddy"));
-                    }
                 }
-            }
 
             if (gotObj == false)
-            {
                 DelayAction.Add(5000, () => GetLuluPix());
-            }
         }
 
-        private static void ProcessSpell_LuluQ(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args, SpellData spellData,
+        private static void ProcessSpell_LuluQ(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args,
+            SpellData spellData,
             SpecialSpellEventArgs specialSpellArgs)
         {
             if (spellData.spellName == "LuluQ")
-            {
-                foreach (KeyValuePair<int, ObjectTrackerInfo> entry in ObjectTracker.objTracker)
+                foreach (var entry in ObjectTracker.objTracker)
                 {
                     var info = entry.Value;
 
                     if (entry.Value.Name == "RobotBuddy")
-                    {
                         if (info.obj == null || !info.obj.IsValid || info.obj.IsDead || info.obj.IsVisible)
                         {
-                            continue;
                         }
                         else
                         {
-                            Vector3 endPos2 = info.obj.Position.Extend(args.End, spellData.range);
+                            var endPos2 = info.obj.Position.Extend(args.End, spellData.range);
                             SpellDetector.CreateSpellData(hero, info.obj.Position, endPos2, spellData, null, 0, false);
                         }
-                    }
                 }
-            }
         }
     }
 }

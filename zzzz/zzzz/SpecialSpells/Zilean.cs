@@ -1,17 +1,14 @@
-﻿using System;
-using Aimtec.SDK.Extensions;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Aimtec;
+using Aimtec.SDK.Extensions;
 using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
+
 //using SharpDX;
 
 namespace zzzz.SpecialSpells
 {
-    class Zilean : ChampionPlugin
+    internal class Zilean : ChampionPlugin
     {
         internal const string ObjName = "TimeBombGround";
         private static readonly List<GameObject> _bombs = new List<GameObject>();
@@ -40,34 +37,29 @@ namespace zzzz.SpecialSpells
             {
                 var timestamp = spot.Key;
                 if (Game.ClockTime - timestamp >= 2.5f * 0.6f)
-                {
                     _qSpots.Remove(timestamp);
-                }
             }
         }
 
         private void GameObject_OnCreate(GameObject bomb)
         {
             if (bomb.Name.Contains(ObjName) && bomb.CheckTeam())
-            {
                 if (!_bombs.Contains(bomb))
                 {
                     RemovePairsNear(bomb.Position);
                     _bombs.Add(bomb);
                 }
-            }
         }
 
         private void GameObject_OnDelete(GameObject bomb)
         {
             if (bomb.Name.Contains(ObjName) && bomb.CheckTeam())
-            {
                 _bombs.RemoveAll(i => i.NetworkId == bomb.NetworkId);
-            }
         }
 
 
-        private void SpellDetector_OnProcessSpecialSpell(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args, SpellData spellData, SpecialSpellEventArgs specialSpellArgs)
+        private void SpellDetector_OnProcessSpecialSpell(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args,
+            SpellData spellData, SpecialSpellEventArgs specialSpellArgs)
         {
             if (spellData.spellName == "ZileanQ")
             {
@@ -77,26 +69,30 @@ namespace zzzz.SpecialSpells
 
                 foreach (var bomb in _bombs.Where(b => b.IsValid && !b.IsDead && b.IsVisible))
                 {
-                    var newData = (SpellData)spellData.Clone();
+                    var newData = (SpellData) spellData.Clone();
                     newData.radius = 350;
 
                     if (end.Distance(bomb.Position) <= newData.radius)
                     {
-                        SpellDetector.CreateSpellData(hero, hero.ServerPosition, bomb.Position, newData, null, 0, true, SpellType.Circular, false, newData.radius);
-                        SpellDetector.CreateSpellData(hero, hero.ServerPosition, end, newData, null, 0, true, SpellType.Circular, false, newData.radius);
+                        SpellDetector.CreateSpellData(hero, hero.ServerPosition, bomb.Position, newData, null, 0, true,
+                            SpellType.Circular, false, newData.radius);
+                        SpellDetector.CreateSpellData(hero, hero.ServerPosition, end, newData, null, 0, true,
+                            SpellType.Circular, false, newData.radius);
                         specialSpellArgs.noProcess = true;
                     }
                 }
 
                 foreach (var bombPosition in _qSpots.Values)
                 {
-                    var newData = (SpellData)spellData.Clone();
+                    var newData = (SpellData) spellData.Clone();
                     newData.radius = 350;
 
                     if (end.Distance(bombPosition) <= newData.radius && _qSpots.Count > 1)
                     {
-                        SpellDetector.CreateSpellData(hero, hero.ServerPosition, bombPosition, newData, null, 0, true, SpellType.Circular, false, newData.radius);
-                        SpellDetector.CreateSpellData(hero, hero.ServerPosition, end, newData, null, 0, true, SpellType.Circular, false, newData.radius);
+                        SpellDetector.CreateSpellData(hero, hero.ServerPosition, bombPosition, newData, null, 0, true,
+                            SpellType.Circular, false, newData.radius);
+                        SpellDetector.CreateSpellData(hero, hero.ServerPosition, end, newData, null, 0, true,
+                            SpellType.Circular, false, newData.radius);
                         specialSpellArgs.noProcess = true;
                     }
                 }
@@ -108,9 +104,7 @@ namespace zzzz.SpecialSpells
         private static void RemovePairsNear(Vector3 pos)
         {
             foreach (var pair in _qSpots.ToArray().Where(o => o.Value.Distance(pos) <= 30))
-            {
                 _qSpots.Remove(pair.Key);
-            }
         }
     }
 }

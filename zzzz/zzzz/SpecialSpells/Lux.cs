@@ -1,24 +1,14 @@
-﻿using System;
-using Aimtec.SDK.Extensions;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿using System.Linq;
 using Aimtec;
+using Aimtec.SDK.Extensions;
 using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
+
 //using SharpDX;
 
 namespace zzzz.SpecialSpells
 {
-    class Lux : ChampionPlugin
+    internal class Lux : ChampionPlugin
     {
-        static Lux()
-        {
-
-        }
-
         public void LoadSpecialSpell(SpellData spellData)
         {
             if (spellData.spellName == "LuxMaliceCannon")
@@ -27,7 +17,7 @@ namespace zzzz.SpecialSpells
                 if (hero != null && hero.CheckTeam())
                 {
                     ObjectTracker.HuiTrackerForceLoad();
-                    GameObject.OnCreate += (obj) => OnCreateObj_LuxMaliceCannon(obj, hero, spellData);
+                    GameObject.OnCreate += obj => OnCreateObj_LuxMaliceCannon(obj, hero, spellData);
                 }
             }
         }
@@ -47,10 +37,8 @@ namespace zzzz.SpecialSpells
 
                     SpellDetector.CreateSpellData(hero, pos1.To3D(), pos2.To3D(), spellData, null, 0);
 
-                    foreach (ObjectTrackerInfo gameObj in objList)
-                    {
+                    foreach (var gameObj in objList)
                         DelayAction.Add(1, () => ObjectTracker.objTracker.Remove(gameObj.obj.NetworkId));
-                    }
                 }
             }
         }

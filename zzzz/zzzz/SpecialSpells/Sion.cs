@@ -1,24 +1,14 @@
-﻿using System;
-using Aimtec.SDK.Extensions;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿using System.Linq;
 using Aimtec;
+using Aimtec.SDK.Extensions;
 using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
+
 //using SharpDX;
 
 namespace zzzz.SpecialSpells
 {
-    class Sion : ChampionPlugin
+    internal class Sion : ChampionPlugin
     {
-        static Sion()
-        {
-            // todo: fix for multiple sions on same team (e.g one for all)
-        }
-
         public void LoadSpecialSpell(SpellData spellData)
         {
             if (spellData.spellName == "SionR")
@@ -32,7 +22,8 @@ namespace zzzz.SpecialSpells
             }
         }
 
-        private void SpellDetector_OnProcessSpecialSpell(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args, SpellData spellData, SpecialSpellEventArgs specialSpellArgs)
+        private void SpellDetector_OnProcessSpecialSpell(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args,
+            SpellData spellData, SpecialSpellEventArgs specialSpellArgs)
         {
             if (spellData.spellName == "SionR")
             {
@@ -43,7 +34,8 @@ namespace zzzz.SpecialSpells
 
         private void Game_OnUpdate(Obj_AI_Hero hero)
         {
-            foreach (var spell in SpellDetector.detectedSpells.Where(x => x.Value.heroID == hero.NetworkId && x.Value.info.spellName == "SionR"))
+            foreach (var spell in SpellDetector.detectedSpells.Where(
+                x => x.Value.heroID == hero.NetworkId && x.Value.info.spellName == "SionR"))
             {
                 var facingPos = hero.ServerPosition.To2D() + hero.Orientation.To2D().Perpendicular();
                 var endPos = hero.ServerPosition.To2D() + (facingPos - hero.ServerPosition.To2D()).Normalized() * 450;
@@ -53,7 +45,8 @@ namespace zzzz.SpecialSpells
 
                 if (EvadeUtils.TickCount - spell.Value.startTime >= 1000)
                 {
-                    SpellDetector.CreateSpellData(hero, hero.ServerPosition, endPos.To3D(), spell.Value.info, null, 0, false, SpellType.Line, false);
+                    SpellDetector.CreateSpellData(hero, hero.ServerPosition, endPos.To3D(), spell.Value.info, null, 0,
+                        false, SpellType.Line, false);
                     spell.Value.startTime = EvadeUtils.TickCount;
                     break;
                 }

@@ -1,33 +1,20 @@
-﻿using System;
+﻿using Aimtec;
 using Aimtec.SDK.Extensions;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
 //using SharpDX;
 
 namespace zzzz.SpecialSpells
 {
-    class Malzahar : ChampionPlugin
+    internal class Malzahar : ChampionPlugin
     {
-        static Malzahar()
-        {
-
-        }
-
         public void LoadSpecialSpell(SpellData spellData)
         {
             if (spellData.spellName == "MalzaharQ")
-            {
                 SpellDetector.OnProcessSpecialSpell += ProcessSpell_AlZaharCalloftheVoid;
-            }
         }
 
-        private static void ProcessSpell_AlZaharCalloftheVoid(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args, SpellData spellData,
+        private static void ProcessSpell_AlZaharCalloftheVoid(Obj_AI_Base hero,
+            Obj_AI_BaseMissileClientDataEventArgs args, SpellData spellData,
             SpecialSpellEventArgs specialSpellArgs)
         {
             if (spellData.spellName == "MalzaharQ")

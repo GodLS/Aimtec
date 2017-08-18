@@ -1,28 +1,20 @@
-﻿using System;
-using Aimtec.SDK.Extensions;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-
 using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
+using Aimtec.SDK.Extensions;
 using Aimtec.SDK.Menu.Components;
 using Aimtec.SDK.Util;
-using Aimtec.SDK.Util.Cache;
 
 //using SharpDX;
 
 namespace zzzz.SpecialSpells
 {
-
-    class AllChampions : ChampionPlugin
+    internal class AllChampions : ChampionPlugin
     {
         public static Dictionary<string, bool> pDict = new Dictionary<string, bool>();
 
         static AllChampions()
         {
-
         }
 
         public void LoadSpecialSpell(SpellData spellData)
@@ -61,7 +53,6 @@ namespace zzzz.SpecialSpells
 
         private void GameObject_OnCreate(GameObject sender)
         {
-
             //var emitter = sender as Obj_GeneralParticleEmitter;
             //if (emitter != null && emitter.CheckTeam())
             //{
@@ -85,12 +76,13 @@ namespace zzzz.SpecialSpells
 
                 if (SpellDetector.onProcessTraps.TryGetValue(aiBase.UnitSkinName.ToLower(), out spellData))
                 {
-                    var trapData = (SpellData)spellData.Clone();
+                    var trapData = (SpellData) spellData.Clone();
 
                     if (!trapData.spellName.Contains("_trap"))
                         trapData.spellName = trapData.spellName + "_trap";
 
-                    SpellDetector.CreateSpellData(aiBase, aiBase.ServerPosition, aiBase.ServerPosition, trapData, aiBase, 1337f);
+                    SpellDetector.CreateSpellData(aiBase, aiBase.ServerPosition, aiBase.ServerPosition, trapData,
+                        aiBase, 1337f);
                 }
             }
         }
@@ -118,13 +110,12 @@ namespace zzzz.SpecialSpells
                 SpellData spellData;
 
                 if (SpellDetector.onProcessTraps.TryGetValue(aiBase.UnitSkinName.ToLower(), out spellData))
-                {
-                    foreach (var entry in SpellDetector.detectedSpells.Where(x => x.Value.info.trapBaseName.ToLower() == aiBase.UnitSkinName.ToLower()))
+                    foreach (var entry in SpellDetector.detectedSpells.Where(
+                        x => x.Value.info.trapBaseName.ToLower() == aiBase.UnitSkinName.ToLower()))
                     {
                         DelayAction.Add(1, () => SpellDetector.DeleteSpell(entry.Key));
                         entry.Value.spellObject = null;
                     }
-                }
             }
         }
 
@@ -134,9 +125,7 @@ namespace zzzz.SpecialSpells
             {
                 var spell = entry.Value;
                 if (spell.spellObject == null)
-                {
                     continue;
-                }
 
                 if (spell.spellObject.IsDead || !spell.spellObject.IsValid)
                 {
@@ -149,37 +138,31 @@ namespace zzzz.SpecialSpells
         private void Game_OnWndProc(WndProcEventArgs e)
         {
             if (!ObjectCache.menuCache.cache["ClickRemove"].As<MenuBool>().Enabled)
-            {
                 return;
-            }
 
-            if (e.Message != (uint)WindowsMessages.WM_LBUTTONDOWN)
-            {
+            if (e.Message != (uint) WindowsMessages.WM_LBUTTONDOWN)
                 return;
-            }
 
-            foreach (var entry in SpellDetector.detectedSpells.Where(x => Game.CursorPos.To2D().InSkillShot(x.Value, 50 + x.Value.info.radius, false)))
+            foreach (var entry in SpellDetector.detectedSpells.Where(x => Game.CursorPos.To2D()
+                .InSkillShot(x.Value, 50 + x.Value.info.radius, false)))
             {
                 var spell = entry.Value;
                 if (spell.info.range > 9000 /*global*/ || spell.info.spellName.Contains("_trap"))
-                {
                     DelayAction.Add(1, () => SpellDetector.DeleteSpell(entry.Key));
-                    //Game.PrintChat("<b>zzzz</b>: " + spell.info.charName + " (" + spell.info.spellKey + ") removed!");
-                }
             }
         }
 
-        private static void ProcessSpell_ThreeWay(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args, SpellData spellData, SpecialSpellEventArgs specialSpellArgs)
+        private static void ProcessSpell_ThreeWay(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args,
+            SpellData spellData, SpecialSpellEventArgs specialSpellArgs)
         {
             if (spellData.isThreeWay)
             {
-                Vector3 endPos2 = MathUtils.RotateVector(args.Start.To2D(), args.End.To2D(), spellData.angle).To3D();
+                var endPos2 = MathUtils.RotateVector(args.Start.To2D(), args.End.To2D(), spellData.angle).To3D();
                 SpellDetector.CreateSpellData(hero, args.Start, endPos2, spellData, null, 0, false);
 
-                Vector3 endPos3 = MathUtils.RotateVector(args.Start.To2D(), args.End.To2D(), -spellData.angle).To3D();
+                var endPos3 = MathUtils.RotateVector(args.Start.To2D(), args.End.To2D(), -spellData.angle).To3D();
                 SpellDetector.CreateSpellData(hero, args.Start, endPos3, spellData, null, 0, false);
             }
         }
-
     }
 }

@@ -1,24 +1,13 @@
 ﻿using System;
-using Aimtec.SDK.Extensions;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
+using Aimtec.SDK.Extensions;
+
 //using SharpDX;
 
 namespace zzzz.SpecialSpells
 {
-    class Jayce : ChampionPlugin
+    internal class Jayce : ChampionPlugin
     {
-        static Jayce()
-        {
-
-        }
-
         public void LoadSpecialSpell(SpellData spellData)
         {
             /*if (spellData.spellName == "JayceShockBlastWall")
@@ -35,23 +24,20 @@ namespace zzzz.SpecialSpells
             }*/
         }
 
-        private static void OnCreateObj_jayceshockblast(GameObject obj, EventArgs args, Obj_AI_Hero hero, SpellData spellData)
+        private static void OnCreateObj_jayceshockblast(GameObject obj, EventArgs args, Obj_AI_Hero hero,
+            SpellData spellData)
         {
             if (obj.Type == GameObjectType.obj_GeneralParticleEmitter
                 && obj.Name.Contains("Jayce")
                 && obj.Name.Contains("accel_gate_end")
                 && obj.Name.Contains("RED"))
-            {
                 foreach (var tracker in ObjectTracker.objTracker)
                 {
                     var gateObj = tracker.Value;
 
                     if (gateObj.Name == "AccelGate")
-                    {
                         DelayAction.Add(0, () => ObjectTracker.objTracker.Remove(tracker.Key));
-                    }
                 }
-            }
 
             if (obj.Type == GameObjectType.obj_GeneralParticleEmitter
                 && obj.Name.Contains("Jayce")
@@ -82,8 +68,9 @@ namespace zzzz.SpecialSpells
 
                         Vector2 int1, int2;
                         var intersection =
-                            MathUtils.FindLineCircleIntersections(obj.Position.To2D(), 470, spell.startPos, spell.endPos,
-                            out int1, out int2);
+                            MathUtils.FindLineCircleIntersections(obj.Position.To2D(), 470, spell.startPos,
+                                spell.endPos,
+                                out int1, out int2);
                         var projection = obj.Position.To2D().ProjectOn(spell.startPos, spell.endPos);
 
                         //var intersection = spell.startPos.Intersection(spell.endPos, pos1, pos2);
@@ -103,10 +90,10 @@ namespace zzzz.SpecialSpells
 
                 //SpellDetector.CreateSpellData(hero, pos1.To3D(), pos2.To3D(), spellData, null, 0);     
             }
-
         }
 
-        private static void OnProcessSpell_jayceshockblast(Obj_AI_Base sender, Obj_AI_BaseMissileClientDataEventArgs args)
+        private static void OnProcessSpell_jayceshockblast(Obj_AI_Base sender,
+            Obj_AI_BaseMissileClientDataEventArgs args)
         {
             if (sender.IsEnemy && args.SpellData.Name == "jayceaccelerationgate")
             {
@@ -116,20 +103,19 @@ namespace zzzz.SpecialSpells
             }
         }
 
-        private static void ProcessSpell_jayceshockblast(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args, SpellData spellDataOld, SpecialSpellEventArgs specialSpellArgs)
+        private static void ProcessSpell_jayceshockblast(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args,
+            SpellData spellDataOld, SpecialSpellEventArgs specialSpellArgs)
         {
             if (spellDataOld.spellName == "jayceshockblast")
             {
                 SpellData spellData;
 
                 if (SpellDetector.onProcessSpells.TryGetValue("JayceShockBlastWall", out spellData))
-                {
                     foreach (var tracker in ObjectTracker.objTracker)
                     {
                         var gateObj = tracker.Value;
 
                         if (gateObj.Name == "AccelGate")
-                        {
                             if (gateObj.obj == null)
                             {
                                 DelayAction.Add(0, () => ObjectTracker.objTracker.Remove(tracker.Key));
@@ -146,7 +132,7 @@ namespace zzzz.SpecialSpells
                                 Vector2 int1, int2;
                                 var intersection =
                                     MathUtils.FindLineCircleIntersections(obj.Position.To2D(), 470, startPos, endPos,
-                                    out int1, out int2);
+                                        out int1, out int2);
                                 var projection = obj.Position.To2D().ProjectOn(startPos, endPos);
 
                                 if (intersection > 0 && projection.IsOnSegment)
@@ -156,9 +142,7 @@ namespace zzzz.SpecialSpells
                                     specialSpellArgs.noProcess = true;
                                 }
                             }
-                        }
                     }
-                }
             }
         }
     }

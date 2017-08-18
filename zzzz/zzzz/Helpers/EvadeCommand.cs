@@ -1,12 +1,6 @@
-﻿using System;
+﻿using Aimtec;
 using Aimtec.SDK.Extensions;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
 //using SharpDX;
 
 namespace zzzz
@@ -19,30 +13,29 @@ namespace zzzz
         CastSpell
     }
 
-    class EvadeCommand
+    internal class EvadeCommand
     {
-        private static Obj_AI_Hero myHero { get { return ObjectManager.GetLocalPlayer(); } }
+        public EvadeSpellData evadeSpellData;
+        public bool isProcessed;
 
         public EvadeOrderCommand order;
-        public Vector2 targetPosition;
         public Obj_AI_Base target;
+        public Vector2 targetPosition;
         public float timestamp;
-        public bool isProcessed;
-        public EvadeSpellData evadeSpellData;
 
         public EvadeCommand()
         {
-            this.timestamp = EvadeUtils.TickCount;
-            this.isProcessed = false;
+            timestamp = EvadeUtils.TickCount;
+            isProcessed = false;
         }
+
+        private static Obj_AI_Hero myHero => ObjectManager.GetLocalPlayer();
 
         public static void MoveTo(Vector2 movePos)
         {
             // fix 
             if (!Situation.ShouldDodge())
-            {
                 return;
-            }
 
             Evade.lastEvadeCommand = new EvadeCommand
             {

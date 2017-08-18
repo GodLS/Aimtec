@@ -1,35 +1,21 @@
-﻿using System;
-using Aimtec.SDK.Extensions;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿using System.Linq;
 using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
+using Aimtec.SDK.Extensions;
 using Aimtec.SDK.Util.Cache;
 
 //using SharpDX;
 
 namespace zzzz.SpecialSpells
 {
-    class Azir : ChampionPlugin
+    internal class Azir : ChampionPlugin
     {
-        static Azir()
-        {
-
-        }
-
         public void LoadSpecialSpell(SpellData spellData)
         {
             if (spellData.spellName == "AzirQWrapper")
             {
                 var hero = GameObjects.Heroes.FirstOrDefault(h => h.ChampionName == "Azir");
                 if (hero == null || !hero.CheckTeam())
-                {
                     return;
-                }
 
                 var info = new ObjectTrackerInfo(hero)
                 {
@@ -47,8 +33,7 @@ namespace zzzz.SpecialSpells
         private static void OnCreateObj_AzirSoldier(GameObject obj)
         {
             if (obj.Name == "AzirSoldier")
-            {
-                foreach (KeyValuePair<int, ObjectTrackerInfo> entry in ObjectTracker.objTracker)
+                foreach (var entry in ObjectTracker.objTracker)
                 {
                     var info = entry.Value;
                     if (info.Name == "AzirQSoldier")
@@ -63,41 +48,34 @@ namespace zzzz.SpecialSpells
                         });
                     }
                 }
-            }
         }
 
         private static void OnDeleteObj_AzirSoldier(GameObject obj)
         {
             if (obj.Name == "AzirSoldier")
-            {
-                foreach (KeyValuePair<int, ObjectTrackerInfo> entry in ObjectTracker.objTracker)
+                foreach (var entry in ObjectTracker.objTracker)
                 {
                     var info = entry.Value;
                     if (info.Name == "AzirQSoldier")
-                    {
                         if (info.objList.ContainsKey(obj.NetworkId))
                             info.objList.Remove(obj.NetworkId);
-                    }
                 }
-            }
         }
 
-        private static void ProcessSpell_AzirSoldier(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args, SpellData spellData, SpecialSpellEventArgs specialSpellArgs)
+        private static void ProcessSpell_AzirSoldier(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args,
+            SpellData spellData, SpecialSpellEventArgs specialSpellArgs)
         {
             if (spellData.spellName == "AzirQWrapper")
             {
-                foreach (KeyValuePair<int, ObjectTrackerInfo> entry in ObjectTracker.objTracker)
+                foreach (var entry in ObjectTracker.objTracker)
                 {
                     var info = entry.Value;
                     if (info.Name == "AzirQSoldier")
-                    {
                         foreach (var objEntry in info.objList)
                         {
                             var soldier = objEntry.Value;
                             if (soldier == null || !soldier.IsValid || soldier.IsDead)
-                            {
                                 continue;
-                            }
 
                             var maxMenuSliderange = 875 + hero.Distance(soldier.Position);
                             var start = soldier.Position;
@@ -108,7 +86,6 @@ namespace zzzz.SpecialSpells
 
                             SpellDetector.CreateSpellData(hero, start, end, spellData, soldier);
                         }
-                    }
                 }
 
                 specialSpellArgs.noProcess = true;

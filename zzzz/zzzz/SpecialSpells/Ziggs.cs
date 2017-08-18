@@ -1,33 +1,20 @@
-﻿using System;
+﻿using Aimtec;
 using Aimtec.SDK.Extensions;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
 //using SharpDX;
 
 namespace zzzz.SpecialSpells
 {
-    class Ziggs : ChampionPlugin
+    internal class Ziggs : ChampionPlugin
     {
-        static Ziggs()
-        {
-
-        }
-
         public void LoadSpecialSpell(SpellData spellData)
         {
             if (spellData.spellName == "ZiggsQ")
-            {
                 SpellDetector.OnProcessSpecialSpell += ProcessSpell_ZiggsQ;
-            }
         }
 
-        private static void ProcessSpell_ZiggsQ(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args, SpellData spellData, SpecialSpellEventArgs specialSpellArgs)
+        private static void ProcessSpell_ZiggsQ(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args,
+            SpellData spellData, SpecialSpellEventArgs specialSpellArgs)
         {
             if (spellData.spellName == "ZiggsQ")
             {
@@ -36,9 +23,7 @@ namespace zzzz.SpecialSpells
                 var dir = (endPos - startPos).Normalized();
 
                 if (endPos.Distance(startPos) > 850)
-                {
                     endPos = startPos + dir * 850;
-                }
 
                 SpellDetector.CreateSpellData(hero, args.Start, endPos.To3D(), spellData, null, 0, false);
 

@@ -1,69 +1,60 @@
 ﻿using System;
-using Aimtec.SDK.Extensions;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
-using System.Text;
-
-using Color = System.Drawing.Color;
-
 using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
 using Aimtec.SDK.Events;
+using Aimtec.SDK.Extensions;
 using Aimtec.SDK.Menu;
 using Aimtec.SDK.Menu.Components;
 using Aimtec.SDK.Util;
+using Aimtec.SDK.Util.Cache;
+using zzzz.Draw;
 
 //using SharpDX;
 
 namespace zzzz
 {
-    class EvadeTester
+    internal class EvadeTester
     {
         public static Menu menu;
         public static Menu testMenu;
 
-        private static Obj_AI_Hero myHero { get { return ObjectManager.GetLocalPlayer(); } }
-
         private static Vector2 circleRenderPos;
 
         private static Vector2 startWalkPos;
-        private static float startWalkTime = 0;
+        private static float startWalkTime;
 
         private static Vector2 testCollisionPos;
         private static bool testingCollision = false;
 
-        private static float lastStopingTime = 0;
+        private static float lastStopingTime;
 
         private static IOrderedEnumerable<PositionInfo> sortedBestPos;
 
-        private static float lastGameTimerStart = 0;
-        private static float lastTickCountTimerStart = 0;
-        private static float lastWatchTimerStart = 0;
+        private static float lastGameTimerStart;
+        private static float lastTickCountTimerStart;
+        private static float lastWatchTimerStart;
 
-        private static float lastGameTimerTick = 0;
-        private static float lastTickCountTimerTick = 0;
-        private static float lastWatchTimerTick = 0;
+        private static float lastGameTimerTick;
+        private static float lastTickCountTimerTick;
+        private static float lastWatchTimerTick;
 
         public static float lastProcessPacketTime = 0;
 
-        private static float getGameTimer { get { return Game.ClockTime * 1000; } }
-        private static float getTickCountTimer { get { return Environment.TickCount & int.MaxValue; } }
-        private static float getWatchTimer { get { return EvadeUtils.TickCount; } }
-
-        private static float lastTimerCheck = 0;
+        private static float lastTimerCheck;
         private static bool lastRandomMoveCoeff = false;
 
-        private static float lastRightMouseClickTime = 0;
+        private static float lastRightMouseClickTime;
 
         private static EvadeCommand lastTestMoveToCommand;
 
-        private static float lastSpellCastTimeEx = 0;
-        private static float lastSpellCastTime = 0;
-        private static float lastHeroSpellCastTime = 0;
+        private static float lastSpellCastTimeEx;
+        private static float lastSpellCastTime;
+        private static float lastHeroSpellCastTime;
 
-        private static MissileClient testMissile = null;
-        private static float testMissileStartTime = 0;
+        private static MissileClient testMissile;
+        private static float testMissileStartTime;
         private static float testMissileStartSpeed = 0;
 
         public EvadeTester(Menu mainMenu)
@@ -75,10 +66,9 @@ namespace zzzz
             lastTimerCheck = getTickCountTimer;
 
             Render.OnPresent += Render_OnPresent;
-            Obj_AI_Hero.OnIssueOrder += Game_OnIssueOrder;
+            Obj_AI_Base.OnIssueOrder += Game_OnIssueOrder;
             Game.OnUpdate += Game_OnGameUpdate;
             // Game.OnInput += Game_OnGameInput;
-
 
 
             //Game.OnSendPacket += Game_onSendPacket;
@@ -86,15 +76,15 @@ namespace zzzz
 
             //Game.OnProcessPacket += Game_onRecvPacket;
 
-            MissileClient.OnDestroy += Game_OnDelete;
+            GameObject.OnDestroy += Game_OnDelete;
 
-            MissileClient.OnCreate += SpellMissile_OnCreate;
+            GameObject.OnCreate += SpellMissile_OnCreate;
 
-            Obj_AI_Hero.OnProcessSpellCast += Game_ProcessSpell;
+            Obj_AI_Base.OnProcessSpellCast += Game_ProcessSpell;
             SpellBook.OnCastSpell += Game_OnCastSpell;
             //GameObject.OnFloatPropertyChange += GameObject_OnFloatPropertyChange;
 
-            Obj_AI_Base.OnDamage += Game_OnDamage;
+            AttackableUnit.OnDamage += Game_OnDamage;
             //GameObject.OnIntegerPropertyChange += GameObject_OnIntegerPropertyChange;
             //Game.OnGameNotifyEvent += Game_OnGameNotifyEvent;
 
@@ -102,7 +92,7 @@ namespace zzzz
 
             Obj_AI_Base.OnPerformCast += Game_OnDoCast;
 
-            Obj_AI_Hero.OnNewPath += ObjAiHeroOnOnNewPath;
+            Obj_AI_Base.OnNewPath += ObjAiHeroOnOnNewPath;
 
             SpellDetector.OnProcessDetectedSpells += SpellDetector_OnProcessDetectedSpells;
 
@@ -128,22 +118,24 @@ namespace zzzz
             Game_OnGameLoad();
         }
 
+        private static Obj_AI_Hero myHero => ObjectManager.GetLocalPlayer();
+
+        private static float getGameTimer => Game.ClockTime * 1000;
+        private static float getTickCountTimer => Environment.TickCount & int.MaxValue;
+        private static float getWatchTimer => EvadeUtils.TickCount;
+
         private void Game_OnDoCast(Obj_AI_Base sender, Obj_AI_BaseMissileClientDataEventArgs args)
         {
             if (!testMenu["(ShowDoCastInfo)"].As<MenuBool>().Enabled)
-            {
                 return;
-            }
 
             ConsolePrinter.Print("DoCast " + sender.Name + ": " + args.SpellData.Name);
         }
 
         private void Game_OnWndProc(WndProcEventArgs args)
         {
-            if (args.Message == (uint)WindowsMessages.WM_RBUTTONDOWN)
-            {
+            if (args.Message == (uint) WindowsMessages.WM_RBUTTONDOWN)
                 lastRightMouseClickTime = EvadeUtils.TickCount;
-            }
         }
 
         //private void Game_onRecvPacket(GamePacketEventArgs args)
@@ -218,7 +210,6 @@ namespace zzzz
                     //Draw.RenderObjects.Add(new Draw.RenderCircle(args.Path.Last().To2D(), 500));
                     //Draw.RenderObjects.Add(new Draw.RenderCircle(args.Path.First().To2D(), 500));
                 }
-
             }
         }
 
@@ -228,9 +219,7 @@ namespace zzzz
                 return;
 
             if (testMenu["TestPath"].As<MenuBool>().Enabled)
-            {
-                Draw.RenderObjects.Add(new Draw.RenderCircle(args.End.To2D(), 500));
-            }
+                RenderObjects.Add(new RenderCircle(args.End.To2D(), 500));
 
             lastSpellCastTimeEx = EvadeUtils.TickCount;
         }
@@ -249,14 +238,13 @@ namespace zzzz
         private void Game_OnDelete(GameObject sender)
         {
             if (testMenu["(ShowMissileInfo)"].As<MenuBool>().Enabled)
-            {
                 if (testMissile != null && testMissile.NetworkId == sender.NetworkId)
                 {
                     var range = sender.Position.To2D().Distance(testMissile.StartPosition.To2D());
                     ConsolePrinter.Print("[" + testMissile.SpellData.Name + "]: Est.Missile range: " + range);
-                    ConsolePrinter.Print("[" + testMissile.SpellData.Name + "]: Est.Missile speed: " + 1000 * (range / (EvadeUtils.TickCount - testMissileStartTime)));
+                    ConsolePrinter.Print("[" + testMissile.SpellData.Name + "]: Est.Missile speed: " +
+                                         1000 * (range / (EvadeUtils.TickCount - testMissileStartTime)));
                 }
-            }
         }
 
         private void SpellMissile_OnCreate(GameObject obj)
@@ -281,7 +269,7 @@ namespace zzzz
 
             if (obj.IsValid && obj.Type == GameObjectType.MissileClient)
             {
-                MissileClient mis = (MissileClient)obj;
+                var mis = (MissileClient) obj;
 
                 if (mis.SpellCaster is Obj_AI_Hero && mis.SpellData.ConsideredAsAutoAttack)
                 {
@@ -299,17 +287,13 @@ namespace zzzz
                 return;
 
             if (testMenu["ShowMissileInfo"].As<MenuBool>().Value == false)
-            {
                 return;
-            }
 
 
-            MissileClient missile = (MissileClient)obj;
+            var missile = (MissileClient) obj;
 
             if (!(missile.SpellCaster is Obj_AI_Hero))
-            {
                 return;
-            }
 
             var testMissileSpeedStartTime = EvadeUtils.TickCount;
             var testMissileSpeedStartPos = missile.Position.To2D();
@@ -326,7 +310,8 @@ namespace zzzz
             testMissile = missile;
             testMissileStartTime = EvadeUtils.TickCount;
 
-            ConsolePrinter.Print("[" + missile.SpellData.Name + "]: Est.CastTime: " + (EvadeUtils.TickCount - lastHeroSpellCastTime));
+            ConsolePrinter.Print("[" + missile.SpellData.Name + "]: Est.CastTime: " +
+                                 (EvadeUtils.TickCount - lastHeroSpellCastTime));
             ConsolePrinter.Print("[" + missile.SpellData.Name + "]: Missile Name " + missile.SpellData.Name);
             ConsolePrinter.Print("[" + missile.SpellData.Name + "]: Missile Speed " + missile.SpellData.MissileSpeed);
             ConsolePrinter.Print("[" + missile.SpellData.Name + "]: Accel " + missile.SpellData.MissileAccel);
@@ -341,51 +326,42 @@ namespace zzzz
 
             //ConsolePrinter.Print("Acquired: " + (EvadeUtils.TickCount - lastSpellCastTime));
 
-            Draw.RenderObjects.Add(
-                new Draw.RenderCircle(missile.StartPosition.To2D(), 500));
-            Draw.RenderObjects.Add(
-                new Draw.RenderCircle(missile.EndPosition.To2D(), 500));
+            RenderObjects.Add(
+                new RenderCircle(missile.StartPosition.To2D(), 500));
+            RenderObjects.Add(
+                new RenderCircle(missile.EndPosition.To2D(), 500));
 
             DelayAction.Add(750, () =>
             {
                 if (missile != null && missile.IsValid && !missile.IsDead)
                 {
                     var dist = missile.Position.To2D().Distance(testMissileSpeedStartPos);
-                    ConsolePrinter.Print("[" + missile.SpellData.Name + "]: Est.Missile speed: " + 1000 * (dist / (EvadeUtils.TickCount - testMissileSpeedStartTime)));
+                    ConsolePrinter.Print("[" + missile.SpellData.Name + "]: Est.Missile speed: " +
+                                         1000 * (dist / (EvadeUtils.TickCount - testMissileSpeedStartTime)));
                 }
             });
 
             SpellData spellData;
 
             if (missile.SpellCaster != null && missile.SpellCaster.Team != myHero.Team &&
-                missile.SpellData.Name != null && SpellDetector.onMissileSpells.TryGetValue(missile.SpellData.Name, out spellData)
+                missile.SpellData.Name != null &&
+                SpellDetector.onMissileSpells.TryGetValue(missile.SpellData.Name, out spellData)
                 && missile.StartPosition != null && missile.EndPosition != null)
-            {
-
                 if (missile.StartPosition.Distance(myHero.Position) < spellData.range + 1000)
                 {
                     var hero = missile.SpellCaster;
 
                     if (hero.IsVisible)
-                    {
-                        foreach (KeyValuePair<int, Spell> entry in SpellDetector.spells)
+                        foreach (var entry in SpellDetector.spells)
                         {
-                            Spell spell = entry.Value;
+                            var spell = entry.Value;
 
                             if (spell.info.missileName == missile.SpellData.Name
                                 && spell.heroID == missile.SpellCaster.NetworkId)
-                            {
                                 if (spell.info.isThreeWay == false && spell.info.isSpecial == false)
-                                {
-                                    //spell.spellObject = obj;
                                     ConsolePrinter.Print("Acquired: " + (EvadeUtils.TickCount - spell.startTime));
-                                }
-                            }
                         }
-                    }
-
                 }
-            }
         }
 
         private void Game_ProcessSpell(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args)
@@ -394,10 +370,10 @@ namespace zzzz
                 return;
 
 
-
             if (testMenu["(ShowProcessSpell)"].As<MenuBool>().Enabled)
             {
-                ConsolePrinter.Print(args.SpellData.Name + " CastTime: " + (hero.SpellBook.CastEndTime - Game.ClockTime));
+                ConsolePrinter.Print(
+                    args.SpellData.Name + " CastTime: " + (hero.SpellBook.CastEndTime - Game.ClockTime));
 
                 ConsolePrinter.Print("CastRadius: " + args.SpellData.CastRadius);
 
@@ -411,11 +387,10 @@ namespace zzzz
 
             if (args.SpellData.Name == "YasuoQW")
             {
-
-                Draw.RenderObjects.Add(
-                    new Draw.RenderCircle(args.Start.To2D(), 500));
-                Draw.RenderObjects.Add(
-                    new Draw.RenderCircle(args.End.To2D(), 500));
+                RenderObjects.Add(
+                    new RenderCircle(args.Start.To2D(), 500));
+                RenderObjects.Add(
+                    new RenderCircle(args.End.To2D(), 500));
             }
 
             //ConsolePrinter.Print(EvadeUtils.TickCount - lastProcessPacketTime);
@@ -448,34 +423,25 @@ namespace zzzz
 
             lastHeroSpellCastTime = EvadeUtils.TickCount;
 
-            foreach (KeyValuePair<int, Spell> entry in SpellDetector.spells)
+            foreach (var entry in SpellDetector.spells)
             {
-                Spell spell = entry.Value;
+                var spell = entry.Value;
 
                 if (spell.info.spellName == args.SpellData.Name
                     && spell.heroID == hero.NetworkId)
-                {
                     if (spell.info.isThreeWay == false && spell.info.isSpecial == false)
-                    {
                         ConsolePrinter.Print("Time diff: " + (EvadeUtils.TickCount - spell.startTime));
-                    }
-                }
             }
 
             if (hero.IsMe)
-            {
                 lastSpellCastTime = EvadeUtils.TickCount;
-            }
         }
 
         private void CompareSpellLocation(Spell spell, Vector2 pos, float time)
         {
             var pos2 = spell.currentSpellPosition;
             if (spell.spellObject != null)
-            {
-                ConsolePrinter.Print("Compare: " + (pos2.Distance(pos)) / (EvadeUtils.TickCount - time));
-            }
-
+                ConsolePrinter.Print("Compare: " + pos2.Distance(pos) / (EvadeUtils.TickCount - time));
         }
 
         private void CompareSpellLocation2(Spell spell)
@@ -484,9 +450,7 @@ namespace zzzz
             var timeNow = EvadeUtils.TickCount;
 
             if (spell.spellObject != null)
-            {
-                ConsolePrinter.Print("start distance: " + (spell.startPos.Distance(pos1)));
-            }
+                ConsolePrinter.Print("start distance: " + spell.startPos.Distance(pos1));
 
             DelayAction.Add(250, () => CompareSpellLocation(spell, pos1, timeNow));
         }
@@ -494,16 +458,10 @@ namespace zzzz
         private void Game_OnGameUpdate()
         {
             if (startWalkTime > 0)
-            {
                 if (EvadeUtils.TickCount - startWalkTime > 500 && myHero.HasPath == false)
-                {
-                    //ConsolePrinter.Print("walkspeed: " + startWalkPos.Distance(ObjectCache.myHeroCache.serverPos2D) / (Evade.GetTickCount - startWalkTime));
                     startWalkTime = 0;
-                }
-            }
 
             if (testMenu["(ShowWindupTime)"].As<MenuBool>().Enabled)
-            {
                 if (myHero.HasPath && lastStopingTime > 0)
                 {
                     ConsolePrinter.Print("WindupTime: " + (EvadeUtils.TickCount - lastStopingTime));
@@ -513,17 +471,14 @@ namespace zzzz
                 {
                     lastStopingTime = EvadeUtils.TickCount;
                 }
-            }
 
             if (testMenu["(ShowDashInfo)"].As<MenuBool>().Enabled)
-            {
                 if (myHero.IsDashing())
                 {
                     var dashInfo = myHero.GetDashInfo();
-                    ConsolePrinter.Print("Dash Speed: " + dashInfo.Speed + " Dash dist: " + dashInfo.EndPos.Distance(dashInfo.StartPos));
+                    ConsolePrinter.Print("Dash Speed: " + dashInfo.Speed + " Dash dist: " +
+                                         dashInfo.EndPos.Distance(dashInfo.StartPos));
                 }
-            }
-
         }
 
         //private void Game_OnGameNotifyEvent(GameNotifyEventArgs args)
@@ -565,7 +520,6 @@ namespace zzzz
         //    }
 
 
-
         //    if (args.Property != "mExp" && args.Property != "mGold" && args.Property != "mGoldTotal"
         //        && args.Property != "mMP" && args.Property != "mPARRegenRate")
         //    {
@@ -576,9 +530,7 @@ namespace zzzz
         private void Game_OnDamage(AttackableUnit sender, AttackableUnitDamageEventArgs args)
         {
             if (testMenu["(TestSpellEndTime)"].As<MenuBool>().Value == false)
-            {
                 return;
-            }
 
             if (!sender.IsMe)
                 return;
@@ -622,12 +574,12 @@ namespace zzzz
             if (testMenu["(TestPath)"].As<MenuBool>().Enabled)
             {
                 var tPath = myHero.GetPath(args.Target.Position);
-                Vector2 lastPoint = Vector2.Zero;
+                var lastPoint = Vector2.Zero;
 
-                foreach (Vector3 point in tPath)
+                foreach (var point in tPath)
                 {
                     var point2D = point.To2D();
-                    Draw.RenderObjects.Add(new Draw.RenderCircle(point2D, 500));
+                    RenderObjects.Add(new RenderCircle(point2D, 500));
                     //Render.Circle.DrawCircle(new Vector3(point.X, point.Y, point.Z), ObjectCache.myHeroCache.boundingRadius, Color.Violet, 3);
                 }
             }
@@ -650,59 +602,53 @@ namespace zzzz
             if (args.OrderType == OrderType.MoveTo)
             {
                 if (testMenu["(EvadeTesterPing)"].As<MenuBool>().Enabled)
-                {
                     ConsolePrinter.Print("Sending Path ClickTime: " + (EvadeUtils.TickCount - lastRightMouseClickTime));
-                }
 
-                Vector2 heroPos = ObjectCache.myHeroCache.serverPos2D;
-                Vector2 pos = args.Target.Position.To2D();
-                float speed = ObjectCache.myHeroCache.moveSpeed;
+                var heroPos = ObjectCache.myHeroCache.serverPos2D;
+                var pos = args.Target.Position.To2D();
+                var speed = ObjectCache.myHeroCache.moveSpeed;
 
                 startWalkPos = heroPos;
                 startWalkTime = EvadeUtils.TickCount;
 
-                foreach (KeyValuePair<int, Spell> entry in SpellDetector.spells)
+                foreach (var entry in SpellDetector.spells)
                 {
-                    Spell spell = entry.Value;
+                    var spell = entry.Value;
                     var spellPos = spell.currentSpellPosition;
                     var walkDir = (pos - heroPos).Normalized();
 
 
-                    float spellTime = (EvadeUtils.TickCount - spell.startTime) - spell.info.spellDelay;
+                    var spellTime = EvadeUtils.TickCount - spell.startTime - spell.info.spellDelay;
                     spellPos = spell.startPos + spell.direction * spell.info.projectileSpeed * (spellTime / 1000);
                     //ConsolePrinter.Print("aaaa" + spellTime);
 
 
-                    bool isCollision = false;
-                    float movingCollisionTime = MathUtils.GetCollisionTime(heroPos, spellPos, walkDir * (speed - 25), spell.direction * (spell.info.projectileSpeed - 200), ObjectCache.myHeroCache.boundingRadius, spell.radius, out isCollision);
+                    var isCollision = false;
+                    var movingCollisionTime = MathUtils.GetCollisionTime(heroPos, spellPos, walkDir * (speed - 25),
+                        spell.direction * (spell.info.projectileSpeed - 200), ObjectCache.myHeroCache.boundingRadius,
+                        spell.radius, out isCollision);
                     if (isCollision)
-                    {
-                        //ConsolePrinter.Print("aaaa" + spellPos.Distance(spell.endPos) / spell.info.projectileSpeed);
-                        if (true)//spellPos.Distance(spell.endPos) / spell.info.projectileSpeed > movingCollisionTime)
-                        {
+                        if (true) //spellPos.Distance(spell.endPos) / spell.info.projectileSpeed > movingCollisionTime)
                             ConsolePrinter.Print("movingCollisionTime: " + movingCollisionTime);
-                            //circleRenderPos = heroPos + walkDir * speed * movingCollisionTime;
-                        }
-
-                    }
                 }
             }
         }
 
         private void GetPath(Vector2 movePos)
         {
-
         }
 
         private void PrintTimers()
         {
             Render.Text(10, 10, Color.White, "Timer1 Freq: " + (getGameTimer - lastGameTimerTick));
             Render.Text(10, 30, Color.White, "Timer2 Freq: " + (getTickCountTimer - lastTickCountTimerTick));
-            Render.Text(10, 50, Color.White, "Timer3 Freq: " + (getWatchTimer - lastWatchTimerTick));//(getWatchTimer - lastWatchTimerTick));
+            Render.Text(10, 50, Color.White,
+                "Timer3 Freq: " + (getWatchTimer - lastWatchTimerTick)); //(getWatchTimer - lastWatchTimerTick));
 
             if (getTickCountTimer - lastTimerCheck > 1000)
             {
-                ConsolePrinter.Print("" + ((getGameTimer - lastGameTimerStart) - (getTickCountTimer - lastTickCountTimerStart)));
+                ConsolePrinter.Print("" + (getGameTimer - lastGameTimerStart -
+                                           (getTickCountTimer - lastTickCountTimerStart)));
                 lastTimerCheck = getTickCountTimer;
             }
 
@@ -716,7 +662,6 @@ namespace zzzz
             Render.Text(10, 100, Color.White, "Timer3 Freq: " + (getWatchTimer));*/
 
 
-
             lastGameTimerTick = getGameTimer;
             lastTickCountTimerTick = getTickCountTimer;
             lastWatchTimerTick = getWatchTimer;
@@ -725,13 +670,9 @@ namespace zzzz
         private void TestUnderTurret()
         {
             if (Game.CursorPos.To2D().IsUnderTurret())
-            {
                 Render.Circle(Game.CursorPos, 50, 50, Color.Red);
-            }
             else
-            {
                 Render.Circle(Game.CursorPos, 50, 50, Color.White);
-            }
         }
 
         private void Render_OnPresent()
@@ -756,15 +697,16 @@ namespace zzzz
                 Render.Circle.DrawCircle(Game.CursorPos, ObjectCache.myHeroCache.boundingRadius, Color.White, 3);
             }*/
 
-            foreach (KeyValuePair<int, Spell> entry in SpellDetector.drawSpells)
+            foreach (var entry in SpellDetector.drawSpells)
             {
-                Spell spell = entry.Value;
+                var spell = entry.Value;
 
                 if (spell.spellType == SpellType.Line)
                 {
-                    Vector2 spellPos = spell.currentSpellPosition;
+                    var spellPos = spell.currentSpellPosition;
 
-                    Render.Circle(new Vector3(spellPos.X, spellPos.Y, myHero.Position.Z), spell.info.radius, 50, Color.White);
+                    Render.Circle(new Vector3(spellPos.X, spellPos.Y, myHero.Position.Z), spell.info.radius, 50,
+                        Color.White);
 
                     /*spellPos = spellPos + spell.Orientation * spell.info.projectileSpeed * (60 / 1000); //move the spellPos by 50 miliseconds forwards
                     spellPos = spellPos + spell.Orientation * 200; //move the spellPos by 50 units forwards        
@@ -778,25 +720,29 @@ namespace zzzz
                 var path = myHero.Path;
                 if (path.Length > 0)
                 {
-                    var heroPos2 = EvadeHelper.GetRealHeroPos(ObjectCache.gamePing + 50);// path[path.Length - 1].To2D();
+                    var heroPos2 =
+                        EvadeHelper.GetRealHeroPos(ObjectCache.gamePing + 50); // path[path.Length - 1].To2D();
                     var heroPos1 = ObjectCache.myHeroCache.serverPos2D;
 
-                    Render.Circle(new Vector3(heroPos2.X, heroPos2.Y, myHero.ServerPosition.Z), ObjectCache.myHeroCache.boundingRadius, 50, Color.Red);
-                    Render.Circle(new Vector3(myHero.ServerPosition.X, myHero.ServerPosition.Y, myHero.ServerPosition.Z), ObjectCache.myHeroCache.boundingRadius, 50, Color.White);
+                    Render.Circle(new Vector3(heroPos2.X, heroPos2.Y, myHero.ServerPosition.Z),
+                        ObjectCache.myHeroCache.boundingRadius, 50, Color.Red);
+                    Render.Circle(
+                        new Vector3(myHero.ServerPosition.X, myHero.ServerPosition.Y, myHero.ServerPosition.Z),
+                        ObjectCache.myHeroCache.boundingRadius, 50, Color.White);
 
                     Vector2 heroPos;
                     Render.WorldToScreen(ObjectManager.GetLocalPlayer().Position, out heroPos);
                     //var dimension = Render.GetTextExtent("Evade: ON");
-                    Render.Text(heroPos.X - 10, heroPos.Y, Color.Red, "" + (int)(heroPos2.Distance(heroPos1)));
+                    Render.Text(heroPos.X - 10, heroPos.Y, Color.Red, "" + (int) heroPos2.Distance(heroPos1));
 
-                    Render.Circle(new Vector3(circleRenderPos.X, circleRenderPos.Y, myHero.ServerPosition.Z), 10, 50, Color.Red);
+                    Render.Circle(new Vector3(circleRenderPos.X, circleRenderPos.Y, myHero.ServerPosition.Z), 10, 50,
+                        Color.Red);
                 }
             }
 
             if (testMenu["(DrawHeroPos)"].As<MenuBool>().Enabled)
-            {
-                Render.Circle(new Vector3(myHero.ServerPosition.X, myHero.ServerPosition.Y, myHero.ServerPosition.Z), ObjectCache.myHeroCache.boundingRadius, 50, Color.White);
-            }
+                Render.Circle(new Vector3(myHero.ServerPosition.X, myHero.ServerPosition.Y, myHero.ServerPosition.Z),
+                    ObjectCache.myHeroCache.boundingRadius, 50, Color.White);
 
             if (testMenu["(TestMoveTo)"].As<MenuKeyBind>().Enabled)
             {
@@ -824,12 +770,13 @@ namespace zzzz
             if (testMenu["(TestPath)"].As<MenuBool>().Enabled)
             {
                 var tPath = myHero.GetPath(Game.CursorPos);
-                Vector2 lastPoint = Vector2.Zero;
+                var lastPoint = Vector2.Zero;
 
-                foreach (Vector3 point in tPath)
+                foreach (var point in tPath)
                 {
                     var point2D = point.To2D();
-                    Render.Circle(new Vector3(point.X, point.Y, point.Z), ObjectCache.myHeroCache.boundingRadius, 50, Color.Violet);
+                    Render.Circle(new Vector3(point.X, point.Y, point.Z), ObjectCache.myHeroCache.boundingRadius, 50,
+                        Color.Violet);
 
                     lastPoint = point2D;
                 }
@@ -838,9 +785,9 @@ namespace zzzz
             if (testMenu["(TestPath)"].As<MenuBool>().Enabled)
             {
                 var tPath = myHero.GetPath(Game.CursorPos);
-                Vector2 lastPoint = Vector2.Zero;
+                var lastPoint = Vector2.Zero;
 
-                foreach (Vector3 point in tPath)
+                foreach (var point in tPath)
                 {
                     var point2D = point.To2D();
                     //Render.Circle.DrawCircle(new Vector3(point.X, point.Y, point.Z), ObjectCache.myHeroCache.boundingRadius, Color.Violet, 3);
@@ -848,23 +795,24 @@ namespace zzzz
                     lastPoint = point2D;
                 }
 
-                foreach (KeyValuePair<int, Spell> entry in SpellDetector.spells)
+                foreach (var entry in SpellDetector.spells)
                 {
-                    Spell spell = entry.Value;
+                    var spell = entry.Value;
 
-                    Vector2 to = Game.CursorPos.To2D();
+                    var to = Game.CursorPos.To2D();
                     var dir = (to - myHero.Position.To2D()).Normalized();
                     Vector2 cPos1, cPos2;
 
-                    var cpa = MathUtilsCPA.CPAPointsEx(myHero.Position.To2D(), dir * ObjectCache.myHeroCache.moveSpeed, spell.endPos, spell.direction * spell.info.projectileSpeed, to, spell.endPos);
-                    var cpaTime = MathUtilsCPA.CPATime(myHero.Position.To2D(), dir * ObjectCache.myHeroCache.moveSpeed, spell.endPos, spell.direction * spell.info.projectileSpeed);
+                    var cpa = MathUtilsCPA.CPAPointsEx(myHero.Position.To2D(), dir * ObjectCache.myHeroCache.moveSpeed,
+                        spell.endPos, spell.direction * spell.info.projectileSpeed, to, spell.endPos);
+                    var cpaTime = MathUtilsCPA.CPATime(myHero.Position.To2D(), dir * ObjectCache.myHeroCache.moveSpeed,
+                        spell.endPos, spell.direction * spell.info.projectileSpeed);
 
                     //ConsolePrinter.Print("" + cpaTime);
                     //Render.Circle.DrawCircle(cPos1.To3D(), ObjectCache.myHeroCache.boundingRadius, Color.Red, 3);
 
                     if (cpa < ObjectCache.myHeroCache.boundingRadius + spell.radius)
                     {
-
                     }
                 }
             }
@@ -874,9 +822,7 @@ namespace zzzz
                 var target = myHero;
 
                 foreach (var hero in GameObjects.EnemyHeroes)
-                {
                     target = hero;
-                }
 
                 var buffs = target.Buffs;
 
@@ -888,10 +834,9 @@ namespace zzzz
                 if (!target.IsTargetable)
                     ConsolePrinter.Print("invul" + EvadeUtils.TickCount);
 
-                int height = 20;
+                var height = 20;
 
                 foreach (var buff in buffs)
-                {
                     if (buff.IsValid)
                     {
                         Render.Text(10, height, Color.White, buff.Name);
@@ -899,12 +844,10 @@ namespace zzzz
 
                         ConsolePrinter.Print(buff.Name);
                     }
-                }
             }
 
             if (testMenu["(TestTracker)"].As<MenuBool>().Enabled)
-            {
-                foreach (KeyValuePair<int, ObjectTrackerInfo> entry in ObjectTracker.objTracker)
+                foreach (var entry in ObjectTracker.objTracker)
                 {
                     var info = entry.Value;
 
@@ -917,26 +860,11 @@ namespace zzzz
                     Render.Circle(new Vector3(endPos2.X, endPos2.Y, myHero.Position.Z), 50, 50, Color.Green);
                 }
 
-
-                /*foreach (var obj in ObjectManager.Get<Obj_AI_Minion>())
-                {
-                    ConsolePrinter.Print("minion: " + obj.Name);
-                    if (obj.Name == "Ekko")
-                    {
-                        var pos = obj.Position;
-                        Render.Circle.DrawCircle(pos, 100, Color.Green, 3);
-                    }
-                }*/
-            }
-
             if (testMenu["(ShowMissileInfo)"].As<MenuBool>().Enabled)
-            {
                 if (testMissile != null)
                 {
                     //Render.Circle.DrawCircle(testMissile.Position, testMissile.BoundingRadius, Color.White, 3);
-
                 }
-            }
 
             if (testMenu["(TestWall)"].As<MenuBool>().Enabled)
             {
@@ -960,36 +888,33 @@ namespace zzzz
                     }                                      
                 }*/
 
-                int posChecked = 0;
-                int maxPosToCheck = 50;
-                int posRadius = 50;
-                int radiusIndex = 0;
+                var posChecked = 0;
+                var maxPosToCheck = 50;
+                var posRadius = 50;
+                var radiusIndex = 0;
 
-                Vector2 heroPoint = ObjectCache.myHeroCache.serverPos2D;
-                List<PositionInfo> posTable = new List<PositionInfo>();
+                var heroPoint = ObjectCache.myHeroCache.serverPos2D;
+                var posTable = new List<PositionInfo>();
 
                 while (posChecked < maxPosToCheck)
                 {
                     radiusIndex++;
 
-                    int curRadius = radiusIndex * (2 * posRadius);
-                    int curCircleChecks = (int)Math.Ceiling((2 * Math.PI * (double)curRadius) / (2 * (double)posRadius));
+                    var curRadius = radiusIndex * 2 * posRadius;
+                    var curCircleChecks = (int) Math.Ceiling(2 * Math.PI * curRadius / (2 * (double) posRadius));
 
-                    for (int i = 1; i < curCircleChecks; i++)
+                    for (var i = 1; i < curCircleChecks; i++)
                     {
                         posChecked++;
-                        var cRadians = (2 * Math.PI / (curCircleChecks - 1)) * i; //check decimals
-                        var pos = new Vector2((float)Math.Floor(heroPoint.X + curRadius * Math.Cos(cRadians)), (float)Math.Floor(heroPoint.Y + curRadius * Math.Sin(cRadians)));
+                        var cRadians = 2 * Math.PI / (curCircleChecks - 1) * i; //check decimals
+                        var pos = new Vector2((float) Math.Floor(heroPoint.X + curRadius * Math.Cos(cRadians)),
+                            (float) Math.Floor(heroPoint.Y + curRadius * Math.Sin(cRadians)));
 
                         if (!EvadeHelper.CheckPathCollision(myHero, pos))
-                        {
-                            Render.Circle(new Vector3(pos.X, pos.Y, myHero.Position.Z), (float)25, 50, Color.White);
-                        }
-
+                            Render.Circle(new Vector3(pos.X, pos.Y, myHero.Position.Z), 25, 50, Color.White);
                     }
                 }
             }
-
         }
     }
 }

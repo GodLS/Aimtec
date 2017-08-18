@@ -1,17 +1,8 @@
-﻿using System;
-using Aimtec.SDK.Extensions;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-using Color = System.Drawing.Color;
-
+﻿using System.Drawing;
 using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
+using Aimtec.SDK.Extensions;
 using Aimtec.SDK.Menu;
 using Aimtec.SDK.Menu.Components;
-using Aimtec.SDK.Prediction.Skillshots.AoE;
 
 //using SharpDX;
 
@@ -21,8 +12,6 @@ namespace zzzz
     {
         public static Menu menu;
 
-        private static Obj_AI_Hero myHero { get { return ObjectManager.GetLocalPlayer(); } }
-
 
         public SpellDrawer(Menu mainMenu)
         {
@@ -31,6 +20,8 @@ namespace zzzz
             menu = mainMenu;
             Game_OnGameLoad();
         }
+
+        private static Obj_AI_Hero myHero => ObjectManager.GetLocalPlayer();
 
         private void Game_OnGameLoad()
         {
@@ -42,7 +33,7 @@ namespace zzzz
             Evade.drawMenu.Add(new MenuBool("DrawSpellPos", "Draw Spell Position"));
             Evade.drawMenu.Add(new MenuBool("DrawEvadePosition", "Draw Evade Position"));
 
-            Menu dangerMenu = new Menu("DangerLevelDrawings", "Danger Level Drawings");
+            var dangerMenu = new Menu("DangerLevelDrawings", "Danger Level Drawings");
             dangerMenu.Add(new MenuSlider("LowWidth", "Line Width", 3, 1, 15));
             //lowDangerMenu.Add(new MenuComponent("LowColor", "Color").SetValue(new Circle(true, Color.FromArgb(60, 255, 255, 255))));
 
@@ -103,8 +94,6 @@ namespace zzzz
 
             var rectangle = new Geometry.Rectangle(start.To3D(), end.To3D(), radius);
             rectangle.ToPolygon().Draw(color);
-
-
         }
 
 
@@ -120,12 +109,12 @@ namespace zzzz
             Vector2 iStartPos;
             Render.WorldToScreen(new Vector3(initStartPos.X, initStartPos.Y, myHero.Position.Z), out iStartPos);
             Vector2 rEndPos;
-           Render.WorldToScreen(new Vector3(rightEndPos.X, rightEndPos.Y, myHero.Position.Z), out rEndPos);
+            Render.WorldToScreen(new Vector3(rightEndPos.X, rightEndPos.Y, myHero.Position.Z), out rEndPos);
             Vector2 lEndPos;
             Render.WorldToScreen(new Vector3(leftEndPos.X, leftEndPos.Y, myHero.Position.Z), out lEndPos);
 
             Render.Line(iStartPos, rEndPos, color);
-            Render.Line(iStartPos, lEndPos, color); 
+            Render.Line(iStartPos, lEndPos, color);
             Render.Line(rEndPos, lEndPos, color);
         }
 
@@ -146,14 +135,14 @@ namespace zzzz
                     else
                     {
                         if (ObjectCache.menuCache.cache["DodgeOnlyOnComboKeyEnabled"].As<MenuBool>().Enabled
-                         && ObjectCache.menuCache.cache["DodgeComboKey"].As<MenuKeyBind>().Enabled == false)
+                            && ObjectCache.menuCache.cache["DodgeComboKey"].As<MenuKeyBind>().Enabled == false)
                         {
                             Render.Text(heroPos.X - 10, heroPos.Y, Color.Gray, "Evade: OFF");
                         }
                         else
                         {
-                            if (ObjectCache.menuCache.cache["DontDodgeKeyEnabled"].As<MenuBool>().Value == true
-                         && ObjectCache.menuCache.cache["DontDodgeKey"].As<MenuKeyBind>().Enabled == true)
+                            if (ObjectCache.menuCache.cache["DontDodgeKeyEnabled"].As<MenuBool>().Value
+                                && ObjectCache.menuCache.cache["DontDodgeKey"].As<MenuKeyBind>().Enabled)
                                 Render.Text(heroPos.X - 10, heroPos.Y, Color.Gray, "Evade: OFF");
                             else if (Evade.isDodgeDangerousEnabled())
                                 Render.Text(heroPos.X - 10, heroPos.Y, Color.Yellow, "Evade: ON");
@@ -165,9 +154,8 @@ namespace zzzz
                 else
                 {
                     if (ObjectCache.menuCache.cache["ActivateEvadeSpells"].As<MenuKeyBind>().Enabled)
-                    {
                         if (ObjectCache.menuCache.cache["DodgeOnlyOnComboKeyEnabled"].As<MenuBool>().Enabled
-                         && ObjectCache.menuCache.cache["DodgeComboKey"].As<MenuKeyBind>().Enabled == false)
+                            && ObjectCache.menuCache.cache["DodgeComboKey"].As<MenuKeyBind>().Enabled == false)
                         {
                             Render.Text(heroPos.X - 10, heroPos.Y, Color.Gray, "Evade: OFF");
                         }
@@ -178,21 +166,14 @@ namespace zzzz
                             else
                                 Render.Text(heroPos.X - 10, heroPos.Y, Color.DeepSkyBlue, "Evade: Spell");
                         }
-                    }
                     else
-                    {
                         Render.Text(heroPos.X - 10, heroPos.Y, Color.Gray, "Evade: OFF");
-                    }
                 }
-
-
-
             }
         }
 
         private void Render_OnPresent()
         {
-
             // fix just uncomment it all
             //if (ObjectCache.menuCache.cache["DrawEvadePosition"].As<MenuBool>().Enabled)
             //{
@@ -215,55 +196,53 @@ namespace zzzz
             DrawEvadeStatus();
 
             if (ObjectCache.menuCache.cache["DrawSkillShots"].As<MenuBool>().Value == false)
-            {
                 return;
-            }
 
-            foreach (KeyValuePair<int, Spell> entry in SpellDetector.drawSpells)
+            foreach (var entry in SpellDetector.drawSpells)
             {
-                if (entry.Value == null )
+                if (entry.Value == null)
                     continue;
 
-                Spell spell = entry.Value;
+                var spell = entry.Value;
 
                 var dangerStr = spell.GetSpellDangerString();
                 //// var spellDrawingConfig = Evade.menu[dangerStr + "Color"].As<Circle>();
-                var spellDrawingWidth = ObjectCache.menuCache.cache["DangerLevelDrawings"][dangerStr + "Width"].As<MenuSlider>().Value;
+                var spellDrawingWidth = ObjectCache.menuCache.cache["DangerLevelDrawings"][dangerStr + "Width"]
+                    .As<MenuSlider>().Value;
                 var avoidRadius = ObjectCache.menuCache.cache["ExtraAvoidDistance"].As<MenuSlider>().Value;
 
-                if (Evade.spellMenu[spell.info.charName + spell.info.spellName + "Settings"][spell.info.spellName + "DrawSpell"].As<MenuBool>().Enabled
+                if (Evade.spellMenu[spell.info.charName + spell.info.spellName + "Settings"][
+                        spell.info.spellName + "DrawSpell"].As<MenuBool>().Enabled
                     /*&& spellDrawingConfig.Active*/)
                 {
-
-                    bool canEvade = !(Evade.lastPosInfo != null && Evade.lastPosInfo.undodgeableSpells.Contains(spell.spellID)) || !Evade.devModeOn;
+                    var canEvade = !(Evade.lastPosInfo != null &&
+                                     Evade.lastPosInfo.undodgeableSpells.Contains(spell.spellID)) || !Evade.devModeOn;
 
                     if (spell.spellType == SpellType.Line)
                     {
-                        Vector2 spellPos = spell.currentSpellPosition;
-                        Vector2 spellEndPos = spell.GetSpellEndPosition();
+                        var spellPos = spell.currentSpellPosition;
+                        var spellEndPos = spell.GetSpellEndPosition();
 
-                        DrawLineRectangle(spellPos, spellEndPos, (int)spell.radius,
+                        DrawLineRectangle(spellPos, spellEndPos, (int) spell.radius,
                             spellDrawingWidth, !canEvade ? Color.Yellow : Color.White);
 
                         // fix
-                        if (ObjectCache.menuCache.cache["DrawSpellPos"].As<MenuBool>().Enabled)// && spell.spellObject != null)
-                        {
-                            Render.Circle(new Vector3(spellPos.To3D().X, spellPos.To3D().Y, spell.height), (int)spell.radius, (uint)50, !canEvade ? Color.Yellow : Color.White);
-                        }
-
+                        if (ObjectCache.menuCache.cache["DrawSpellPos"].As<MenuBool>()
+                            .Enabled) // && spell.spellObject != null)
+                            Render.Circle(new Vector3(spellPos.To3D().X, spellPos.To3D().Y, spell.height),
+                                (int) spell.radius, 50, !canEvade ? Color.Yellow : Color.White);
                     }
                     else if (spell.spellType == SpellType.Circular)
                     {
-                        Render.Circle(new Vector3(spell.endPos.To3D().X, spell.endPos.To3D().Y, spell.height), (int)spell.radius, (uint)50, !canEvade ? Color.Yellow : Color.White);
+                        Render.Circle(new Vector3(spell.endPos.To3D().X, spell.endPos.To3D().Y, spell.height),
+                            (int) spell.radius, 50, !canEvade ? Color.Yellow : Color.White);
 
                         if (spell.info.spellName == "VeigarEventHorizon")
-                        {
-                            Render.Circle(new Vector3(spell.endPos.To3D().X, spell.endPos.To3D().Y, spell.height), (int)spell.radius - 125, (uint)50, !canEvade ? Color.Yellow : Color.White);
-                        }
+                            Render.Circle(new Vector3(spell.endPos.To3D().X, spell.endPos.To3D().Y, spell.height),
+                                (int) spell.radius - 125, 50, !canEvade ? Color.Yellow : Color.White);
                         else if (spell.info.spellName == "DariusCleave")
-                        {
-                            Render.Circle(new Vector3(spell.endPos.To3D().X, spell.endPos.To3D().Y, spell.height), (int)spell.radius - 220, (uint)50, !canEvade ? Color.Yellow : Color.White);
-                        }
+                            Render.Circle(new Vector3(spell.endPos.To3D().X, spell.endPos.To3D().Y, spell.height),
+                                (int) spell.radius - 220, 50, !canEvade ? Color.Yellow : Color.White);
                     }
                     else if (spell.spellType == SpellType.Arc)
                     {
@@ -278,7 +257,8 @@ namespace zzzz
                     }
                     else if (spell.spellType == SpellType.Cone)
                     {
-                        DrawLineTriangle(spell.startPos, spell.endPos, (int)spell.radius, spellDrawingWidth, !canEvade ? Color.Yellow : Color.White);
+                        DrawLineTriangle(spell.startPos, spell.endPos, (int) spell.radius, spellDrawingWidth,
+                            !canEvade ? Color.Yellow : Color.White);
                     }
                 }
             }

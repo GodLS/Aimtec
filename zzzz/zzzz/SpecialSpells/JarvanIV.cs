@@ -1,24 +1,19 @@
-﻿using System;
-using Aimtec.SDK.Extensions;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using Aimtec;
+using Aimtec.SDK.Extensions;
 using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
+
 //using SharpDX;
 
 namespace zzzz.SpecialSpells
 {
-    class JarvanIV : ChampionPlugin
+    internal class JarvanIV : ChampionPlugin
     {
         private static readonly Dictionary<float, Vector3> _eSpots = new Dictionary<float, Vector3>();
 
         static JarvanIV()
         {
-
         }
 
         public void LoadSpecialSpell(SpellData spellData)
@@ -29,10 +24,10 @@ namespace zzzz.SpecialSpells
                 if (jarvaniv != null && jarvaniv.CheckTeam())
                 {
                     Game.OnUpdate += Game_OnUpdate;
-                    Obj_AI_Hero.OnProcessSpellCast += ProcessSpell_JarvanIVDemacianStandard;
+                    Obj_AI_Base.OnProcessSpellCast += ProcessSpell_JarvanIVDemacianStandard;
                     SpellDetector.OnProcessSpecialSpell += ProcessSpell_JarvanIVDragonStrike;
-                    Obj_AI_Minion.OnCreate += OnCreateObj_JarvanIVDragonStrike;
-                    Obj_AI_Minion.OnDestroy += OnDeleteObj_JarvanIVDragonStrike;
+                    GameObject.OnCreate += OnCreateObj_JarvanIVDragonStrike;
+                    GameObject.OnDestroy += OnDeleteObj_JarvanIVDragonStrike;
                 }
             }
         }
@@ -43,37 +38,31 @@ namespace zzzz.SpecialSpells
             {
                 var flag = spot.Key;
                 if (Game.ClockTime - flag >= 1.2f * 0.6f)
-                {
                     _eSpots.Remove(flag);
-                }
             }
         }
 
-        private static void ProcessSpell_JarvanIVDemacianStandard(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args)
+        private static void ProcessSpell_JarvanIVDemacianStandard(Obj_AI_Base hero,
+            Obj_AI_BaseMissileClientDataEventArgs args)
         {
             if (hero.IsEnemy && args.SpellData.Name == "JarvanIVDemacianStandard")
-            {
                 ObjectTracker.AddObjTrackerPosition("Beacon", args.End, 1000);
-            }
         }
 
         private static void OnDeleteObj_JarvanIVDragonStrike(GameObject obj)
         {
             if (obj.Name == "Beacon")
-            {
                 ObjectTracker.objTracker.Remove(obj.NetworkId);
-            }
         }
 
         private static void OnCreateObj_JarvanIVDragonStrike(GameObject obj)
         {
             if (obj.Name == "Beacon")
-            {
                 ObjectTracker.objTracker.Add(obj.NetworkId, new ObjectTrackerInfo(obj));
-            }
         }
 
-        private static void ProcessSpell_JarvanIVDragonStrike(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args, SpellData spellData, SpecialSpellEventArgs specialSpellArgs)
+        private static void ProcessSpell_JarvanIVDragonStrike(Obj_AI_Base hero,
+            Obj_AI_BaseMissileClientDataEventArgs args, SpellData spellData, SpecialSpellEventArgs specialSpellArgs)
         {
             if (spellData.spellName == "JarvanIVDemacianStandard")
             {
@@ -85,7 +74,6 @@ namespace zzzz.SpecialSpells
             }
 
             if (spellData.spellName == "JarvanIVDragonStrike")
-            {
                 if (SpellDetector.onProcessSpells.TryGetValue("jarvanivdragonstrike2", out spellData))
                 {
                     foreach (var entry in _eSpots)
@@ -103,7 +91,7 @@ namespace zzzz.SpecialSpells
                         }
                     }
 
-                    foreach (KeyValuePair<int, ObjectTrackerInfo> entry in ObjectTracker.objTracker)
+                    foreach (var entry in ObjectTracker.objTracker)
                     {
                         var info = entry.Value;
 
@@ -129,7 +117,6 @@ namespace zzzz.SpecialSpells
                         }
                     }
                 }
-            }
         }
     }
 }

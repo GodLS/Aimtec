@@ -1,13 +1,8 @@
-﻿using System;
-using Aimtec.SDK.Extensions;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-
 using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
 using Aimtec.SDK.Events;
+using Aimtec.SDK.Extensions;
 using Aimtec.SDK.Menu;
 using Aimtec.SDK.Menu.Components;
 
@@ -15,15 +10,15 @@ using Aimtec.SDK.Menu.Components;
 
 namespace zzzz
 {
-    class EvadeSpell
+    internal class EvadeSpell
     {
-        private static Obj_AI_Hero myHero { get { return ObjectManager.GetLocalPlayer(); } }
-
         public delegate void Callback();
 
         public static List<EvadeSpellData> evadeSpells = new List<EvadeSpellData>();
         public static List<EvadeSpellData> itemSpells = new List<EvadeSpellData>();
-        public static EvadeCommand lastSpellEvadeCommand = new EvadeCommand { isProcessed = true, timestamp = EvadeUtils.TickCount };
+
+        public static EvadeCommand lastSpellEvadeCommand =
+            new EvadeCommand {isProcessed = true, timestamp = EvadeUtils.TickCount};
 
         public static Menu menu;
 
@@ -39,6 +34,8 @@ namespace zzzz
             LoadEvadeSpellList();
             DelayAction.Add(100, () => CheckForItems());
         }
+
+        private static Obj_AI_Hero myHero => ObjectManager.GetLocalPlayer();
 
         private void Game_OnGameUpdate()
         {
@@ -61,7 +58,7 @@ namespace zzzz
         {
             foreach (var spell in itemSpells)
             {
-                var hasItem = myHero.HasItem((uint)spell.itemID);
+                var hasItem = myHero.HasItem(spell.itemID);
 
                 if (hasItem && !evadeSpells.Exists(s => s.spellName == spell.spellName))
                 {
@@ -78,24 +75,23 @@ namespace zzzz
 
         private static Menu CreateEvadeSpellMenu(EvadeSpellData spell)
         {
-
-            string menuName = spell.name + " (" + spell.spellKey.ToString() + ") Settings";
+            var menuName = spell.name + " (" + spell.spellKey + ") Settings";
 
             if (spell.isItem)
-            {
                 menuName = spell.name + " Settings";
-            }
 
-            Menu newSpellMenu = new Menu(spell.charName + spell.name + "EvadeSpellSettings", menuName);
+            var newSpellMenu = new Menu(spell.charName + spell.name + "EvadeSpellSettings", menuName);
             newSpellMenu.Add(new MenuBool(spell.name + "UseEvadeSpell", "Use Spell"));
 
-            newSpellMenu.Add(new MenuList(spell.name + "EvadeSpellDangerLevel", "Danger Level", new[] { "Low", "Normal", "High", "Extreme" }, spell.dangerlevel - 1, false));
+            newSpellMenu.Add(new MenuList(spell.name + "EvadeSpellDangerLevel", "Danger Level",
+                new[] {"Low", "Normal", "High", "Extreme"}, spell.dangerlevel - 1, false));
             //newSpellMenu.Add(new MenuComponent(spell.name + "SpellActivationTime", "Spell Activation Time").SetValue(new MenuSlider(0, 0, 1000)));
 
             //Menu newSpellMiscMenu = new Menu("Misc Settings", spell.charName + spell.name + "EvadeSpellMiscSettings");
             //newSpellMenu.Add(newSpellMiscMenu);
 
-            newSpellMenu.Add(new MenuList(spell.name + "EvadeSpellMode", "Spell Mode", new[] { "Undodgeable", "Activation Time", "Always" }, GetDefaultSpellMode(spell)));
+            newSpellMenu.Add(new MenuList(spell.name + "EvadeSpellMode", "Spell Mode",
+                new[] {"Undodgeable", "Activation Time", "Always"}, GetDefaultSpellMode(spell)));
 
             Evade.evadeSpellMenu.Add(newSpellMenu);
 
@@ -105,9 +101,7 @@ namespace zzzz
         public static int GetDefaultSpellMode(EvadeSpellData spell)
         {
             if (spell.dangerlevel > 3)
-            {
                 return 0;
-            }
 
             return 1;
         }
@@ -117,17 +111,15 @@ namespace zzzz
             if (!Situation.ShouldUseEvadeSpell())
                 return false;
 
-            foreach (KeyValuePair<int, Spell> entry in SpellDetector.spells)
+            foreach (var entry in SpellDetector.spells)
             {
-                Spell spell = entry.Value;
+                var spell = entry.Value;
 
                 if (!ObjectCache.myHeroCache.serverPos2D.InSkillShot(spell, ObjectCache.myHeroCache.boundingRadius))
                     continue;
 
                 if (ActivateEvadeSpell(spell, true))
-                {
                     return true;
-                }
             }
 
             return false;
@@ -136,31 +128,24 @@ namespace zzzz
         public static void UseEvadeSpell()
         {
             if (!Situation.ShouldUseEvadeSpell())
-            {
                 return;
-            }
 
             //int posDangerlevel = EvadeHelper.CheckPosDangerLevel(ObjectCache.myHeroCache.serverPos2D, 0);
 
             if (EvadeUtils.TickCount - lastSpellEvadeCommand.timestamp < 1000)
-            {
                 return;
-            }
 
-            foreach (KeyValuePair<int, Spell> entry in SpellDetector.spells)
+            foreach (var entry in SpellDetector.spells)
             {
-                Spell spell = entry.Value;
+                var spell = entry.Value;
 
                 if (ShouldActivateEvadeSpell(spell))
-                {
                     if (ActivateEvadeSpell(spell))
                     {
                         Evade.SetAllUndodgeable();
                         return;
                     }
-                }
             }
-
         }
 
         public static bool ActivateEvadeSpell(Spell spell, bool checkSpell = false)
@@ -171,51 +156,44 @@ namespace zzzz
             var sortedEvadeSpells = evadeSpells.OrderBy(s => s.dangerlevel);
 
             var extraDelayBuffer = ObjectCache.menuCache.cache["ExtraPingBuffer"].As<MenuSlider>().Value;
-            float spellActivationTime = ObjectCache.menuCache.cache["SpellActivationTime"].As<MenuSlider>().Value + ObjectCache.gamePing + extraDelayBuffer;
+            var spellActivationTime = ObjectCache.menuCache.cache["SpellActivationTime"].As<MenuSlider>().Value +
+                                      ObjectCache.gamePing + extraDelayBuffer;
 
             if (ObjectCache.menuCache.cache["CalculateWindupDelay"].As<MenuBool>().Enabled)
             {
                 var extraWindupDelay = Evade.lastWindupTime - EvadeUtils.TickCount;
                 if (extraWindupDelay > 0)
-                {
                     return false;
-                }
             }
 
             foreach (var evadeSpell in sortedEvadeSpells)
             {
                 var processSpell = true;
 
-                if (Evade.evadeSpellMenu[evadeSpell.charName + evadeSpell.name + "EvadeSpellSettings"][evadeSpell.name + "UseEvadeSpell"].As<MenuBool>().Value == false
-                    || GetSpellDangerLevel(evadeSpell) > spell.GetSpellDangerLevel()
-                    || (evadeSpell.isItem == false && !myHero.SpellBook.CanUseSpell(evadeSpell.spellKey)
-                    //|| (evadeSpell.isItem && !myHero.SpellBook.CanUseSpell(evadeSpell.spellKey)
-                    || (evadeSpell.checkSpellName && myHero.SpellBook.GetSpell(evadeSpell.spellKey).Name != evadeSpell.spellName)))
-                {
+                if (Evade.evadeSpellMenu[evadeSpell.charName + evadeSpell.name + "EvadeSpellSettings"][
+                        evadeSpell.name + "UseEvadeSpell"].As<MenuBool>().Value == false
+                    || GetSpellDangerLevel(evadeSpell) > spell.GetSpellDangerLevel() ||
+                    !myHero.SpellBook.CanUseSpell(evadeSpell.spellKey) || evadeSpell.checkSpellName &&
+                    myHero.SpellBook.GetSpell(evadeSpell.spellKey).Name != evadeSpell.spellName)
                     continue; //can't use spell right now               
-                }
 
                 float evadeTime, spellHitTime;
                 spell.CanHeroEvade(myHero, out evadeTime, out spellHitTime);
 
-                float finalEvadeTime = (spellHitTime - evadeTime);
+                var finalEvadeTime = spellHitTime - evadeTime;
 
                 if (checkSpell)
                 {
-                    var mode = Evade.evadeSpellMenu[evadeSpell.charName + evadeSpell.name + "EvadeSpellSettings"][evadeSpell.name + "EvadeSpellMode"]
-                        .As<MenuList>().Value;
+                    var mode =
+                        Evade.evadeSpellMenu[evadeSpell.charName + evadeSpell.name + "EvadeSpellSettings"][
+                                evadeSpell.name + "EvadeSpellMode"]
+                            .As<MenuList>().Value;
 
                     if (mode == 0)
-                    {
                         continue;
-                    }
-                    else if (mode == 1)
-                    {
+                    if (mode == 1)
                         if (spellActivationTime < finalEvadeTime)
-                        {
                             continue;
-                        }
-                    }
                 }
                 else
                 {
@@ -226,12 +204,11 @@ namespace zzzz
                         if (path.Length > 0)
                         {
                             var movePos = path[path.Length - 1].To2D();
-                            var posInfo = EvadeHelper.CanHeroWalkToPos(movePos, ObjectCache.myHeroCache.moveSpeed, 0, 0);
+                            var posInfo =
+                                EvadeHelper.CanHeroWalkToPos(movePos, ObjectCache.myHeroCache.moveSpeed, 0, 0);
 
                             if (GetSpellDangerLevel(evadeSpell) > posInfo.posDangerLevel)
-                            {
                                 continue;
-                            }
                         }
                     }
                 }
@@ -242,22 +219,14 @@ namespace zzzz
                     processSpell = false;
 
                     if (checkSpell == false)
-                    {
                         continue;
-                    }
                 }
 
                 if (evadeSpell.isSpecial)
                 {
                     if (evadeSpell.useSpellFunc != null)
-                    {
                         if (evadeSpell.useSpellFunc(evadeSpell, processSpell))
-                        {
                             return true;
-                        }
-                    }
-
-                    continue;
                 }
                 else if (evadeSpell.evadeType == EvadeType.Blink)
                 {
@@ -267,9 +236,7 @@ namespace zzzz
                         if (posInfo != null)
                         {
                             if (processSpell)
-                            {
                                 myHero.SpellBook.CastSpell(evadeSpell.spellKey, posInfo.position.To3D());
-                            }
                             //CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell, posInfo.position), processSpell);
                             //DelayAction.Add(50, () => myHero.IssueOrder(OrderType.MoveTo, posInfo.position.To3D()));
                             return true;
@@ -281,9 +248,7 @@ namespace zzzz
                         if (posInfo != null && posInfo.target != null && posInfo.posDangerLevel == 0)
                         {
                             if (processSpell)
-                            {
                                 myHero.SpellBook.CastSpell(evadeSpell.spellKey, posInfo.target);
-                            }
                             //CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell, posInfo.target), processSpell);
                             //DelayAction.Add(50, () => myHero.IssueOrder(OrderType.MoveTo, posInfo.position.To3D()));
                             return true;
@@ -307,9 +272,7 @@ namespace zzzz
                             }
 
                             if (processSpell)
-                            {
                                 myHero.SpellBook.CastSpell(evadeSpell.spellKey, posInfo.position.To3D());
-                            }
                             //DelayAction.Add(50, () => myHero.IssueOrder(OrderType.MoveTo, posInfo.position.To3D()));
                             return true;
                         }
@@ -320,9 +283,7 @@ namespace zzzz
                         if (posInfo != null && posInfo.target != null && posInfo.posDangerLevel == 0)
                         {
                             if (processSpell)
-                            {
                                 myHero.SpellBook.CastSpell(evadeSpell.spellKey, posInfo.target);
-                            }
                             //CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell, posInfo.target), processSpell);
                             //DelayAction.Add(50, () => myHero.IssueOrder(OrderType.MoveTo, posInfo.position.To3D()));
                             return true;
@@ -337,9 +298,7 @@ namespace zzzz
                         var pos = ObjectCache.myHeroCache.serverPos2D + dir * 100;
 
                         if (processSpell)
-                        {
                             myHero.SpellBook.CastSpell(evadeSpell.spellKey, pos.To3D());
-                        }
                         //CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell, pos), processSpell);
                         return true;
                     }
@@ -349,9 +308,7 @@ namespace zzzz
                     if (evadeSpell.isItem)
                     {
                         if (processSpell)
-                        {
                             myHero.SpellBook.CastSpell(evadeSpell.spellKey);
-                        }
                         //CastEvadeSpell(() => myHero.SpellBook.CastSpell(evadeSpell.spellKey), processSpell);
                         return true;
                     }
@@ -359,19 +316,15 @@ namespace zzzz
                     if (evadeSpell.castType == CastType.Target)
                     {
                         if (processSpell)
-                        {
                             myHero.SpellBook.CastSpell(evadeSpell.spellKey, myHero);
-                        }
-                       // CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell, myHero), processSpell);
+                        // CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell, myHero), processSpell);
                         return true;
                     }
 
                     if (evadeSpell.castType == CastType.Self)
                     {
                         if (processSpell)
-                        {
                             myHero.SpellBook.CastSpell(evadeSpell.spellKey);
-                        }
                         //CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell), processSpell);
                         return true;
                     }
@@ -384,9 +337,7 @@ namespace zzzz
                         if (posInfo != null)
                         {
                             if (processSpell)
-                            {
                                 myHero.SpellBook.CastSpell(evadeSpell.spellKey);
-                            }
                             //CastEvadeSpell(() => myHero.SpellBook.CastSpell(evadeSpell.spellKey), processSpell);
                             DelayAction.Add(5, () => EvadeCommand.MoveTo(posInfo.position));
                             return true;
@@ -400,9 +351,7 @@ namespace zzzz
                             if (posInfo != null)
                             {
                                 if (processSpell)
-                                {
                                     myHero.SpellBook.CastSpell(evadeSpell.spellKey);
-                                }
                                 //CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell), processSpell);
                                 DelayAction.Add(5, () => EvadeCommand.MoveTo(posInfo.position));
                                 return true;
@@ -415,9 +364,7 @@ namespace zzzz
                             if (posInfo != null)
                             {
                                 if (processSpell)
-                                {
                                     myHero.SpellBook.CastSpell(evadeSpell.spellKey, posInfo.position.To3D());
-                                }
                                 //CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell, posInfo.position), processSpell);
                                 DelayAction.Add(5, () => EvadeCommand.MoveTo(posInfo.position));
                                 return true;
@@ -433,20 +380,14 @@ namespace zzzz
         public static void CastEvadeSpell(Callback func, bool process = true)
         {
             if (process)
-            {
                 func();
-            }
         }
 
         public static bool CompareEvadeOption(PositionInfo posInfo, bool checkSpell = false)
         {
             if (checkSpell)
-            {
                 if (posInfo.posDangerLevel == 0)
-                {
                     return true;
-                }
-            }
 
             return posInfo.isBetterMovePos();
         }
@@ -460,17 +401,13 @@ namespace zzzz
             if (ObjectCache.menuCache.cache["DodgeSkillShots"].As<MenuKeyBind>().Enabled)
             {
                 if (Evade.lastPosInfo.undodgeableSpells.Contains(spell.spellID)
-                && ObjectCache.myHeroCache.serverPos2D.InSkillShot(spell, ObjectCache.myHeroCache.boundingRadius))
-                {
+                    && ObjectCache.myHeroCache.serverPos2D.InSkillShot(spell, ObjectCache.myHeroCache.boundingRadius))
                     return true;
-                }
             }
             else
             {
                 if (ObjectCache.myHeroCache.serverPos2D.InSkillShot(spell, ObjectCache.myHeroCache.boundingRadius))
-                {
                     return true;
-                }
             }
 
 
@@ -487,26 +424,27 @@ namespace zzzz
 
         public static bool ShouldUseMovementBuff(Spell spell)
         {
-            var sortedEvadeSpells = evadeSpells.Where(s => s.evadeType == EvadeType.MovementSpeedBuff).OrderBy(s => s.dangerlevel);
+            var sortedEvadeSpells = evadeSpells.Where(s => s.evadeType == EvadeType.MovementSpeedBuff)
+                .OrderBy(s => s.dangerlevel);
 
             foreach (var evadeSpell in sortedEvadeSpells)
-            {
-                if (Evade.evadeSpellMenu[evadeSpell.charName + evadeSpell.name + "EvadeSpellSettings"][evadeSpell.name + "UseEvadeSpell"].As<MenuBool>().Value == false
+                if (Evade.evadeSpellMenu[evadeSpell.charName + evadeSpell.name + "EvadeSpellSettings"][
+                        evadeSpell.name + "UseEvadeSpell"].As<MenuBool>().Value == false
                     || GetSpellDangerLevel(evadeSpell) > spell.GetSpellDangerLevel()
-                    || (evadeSpell.isItem == false && myHero.SpellBook.CanUseSpell(evadeSpell.spellKey))
-                    || (evadeSpell.isItem && !myHero.SpellBook.CanUseSpell(evadeSpell.spellKey)
-                        || (evadeSpell.checkSpellName && myHero.SpellBook.GetSpell(evadeSpell.spellKey).Name != evadeSpell.spellName)))
-                {
+                    || evadeSpell.isItem == false && myHero.SpellBook.CanUseSpell(evadeSpell.spellKey) ||
+                    evadeSpell.isItem && !myHero.SpellBook.CanUseSpell(evadeSpell.spellKey) ||
+                    evadeSpell.checkSpellName && myHero.SpellBook.GetSpell(evadeSpell.spellKey).Name !=
+                    evadeSpell.spellName)
                     return false;
-                }
-            }
 
             return true;
         }
 
         public static int GetSpellDangerLevel(EvadeSpellData spell)
         {
-            var dangerStr = Evade.evadeSpellMenu[spell.charName + spell.name + "EvadeSpellSettings"][spell.name + "EvadeSpellDangerLevel"].As<MenuList>().SelectedItem;
+            var dangerStr =
+                Evade.evadeSpellMenu[spell.charName + spell.name + "EvadeSpellSettings"][
+                    spell.name + "EvadeSpellDangerLevel"].As<MenuList>().SelectedItem;
 
             var dangerlevel = 1;
 
@@ -532,35 +470,24 @@ namespace zzzz
         private SpellSlot GetSummonerSlot(string spellName)
         {
             if (myHero.SpellBook.GetSpell(SpellSlot.Summoner1).SpellData.Name == spellName)
-            {
                 return SpellSlot.Summoner1;
-            }
-            else if (myHero.SpellBook.GetSpell(SpellSlot.Summoner2).SpellData.Name == spellName)
-            {
+            if (myHero.SpellBook.GetSpell(SpellSlot.Summoner2).SpellData.Name == spellName)
                 return SpellSlot.Summoner2;
-            }
 
             return SpellSlot.Unknown;
         }
 
         private void LoadEvadeSpellList()
         {
-
             foreach (var spell in EvadeSpellDatabase.Spells.Where(
-                s => (s.charName == myHero.ChampionName || s.charName == "AllChampions")))
+                s => s.charName == myHero.ChampionName || s.charName == "AllChampions"))
             {
-
                 if (spell.isSummonerSpell)
                 {
-                    SpellSlot spellKey = GetSummonerSlot(spell.spellName);
+                    var spellKey = GetSummonerSlot(spell.spellName);
                     if (spellKey == SpellSlot.Unknown)
-                    {
                         continue;
-                    }
-                    else
-                    {
-                        spell.spellKey = spellKey;
-                    }
+                    spell.spellKey = spellKey;
                 }
 
                 if (spell.isItem)
@@ -570,9 +497,7 @@ namespace zzzz
                 }
 
                 if (spell.isSpecial)
-                {
                     SpecialEvadeSpell.LoadSpecialSpell(spell);
-                }
 
                 evadeSpells.Add(spell);
 

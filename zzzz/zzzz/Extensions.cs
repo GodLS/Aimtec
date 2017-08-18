@@ -488,18 +488,14 @@
 //{
 
 
-
 //}
 
-using System;
 using System.Collections.Generic;
-using System.Drawing;
 using Aimtec;
-using Aimtec.SDK.Util.Cache;
 
 namespace zzzz
 {
-    static class Extensions
+    internal static class Extensions
     {
         public static bool IsOnScreen(this Vector3 vector)
         {
@@ -513,17 +509,17 @@ namespace zzzz
 
         public static bool IsOnScreen(this Vector2 vector)
         {
-            Vector2 screen = vector;
+            var screen = vector;
             if (screen.X < 0 || screen.X > Render.Width || screen.Y < 0 || screen.Y > Render.Height)
                 return false;
             return true;
         }
 
-        public static SharpDX.Vector3 SetZ(this SharpDX.Vector3 vector, float value)
-        {
-            vector.Z = value;
-            return vector;
-        }
+        //public static SharpDX.Vector3 SetZ(this SharpDX.Vector3 vector, float value)
+        //{
+        //    vector.Z = value;
+        //    return vector;
+        //}
 
         public static Vector3 SetZ(this Vector3 vector, float value)
         {
@@ -531,15 +527,50 @@ namespace zzzz
             return vector;
         }
 
-        public static SharpDX.Vector2 To2D(this SharpDX.Vector3 v)
-        {
-            return (SharpDX.Vector2)v;
-        }
+        //public static SharpDX.Vector2 To2D(this SharpDX.Vector3 v)
+        //{
+        //    return (SharpDX.Vector2)v;
+        //}
 
         public static Vector3 Perpendicular(this Vector3 v)
         {
             return new Vector3(-v.Z, v.Y, v.X);
         }
+        //    //var spellDir = spell.direction;
+        //    var myBoundingRadius = ObjectManager.GetLocalPlayer().BoundingRadius;
+        //{
+
+        //public static bool LineIntersectsLine(this Vector3 vector, Vector3 dir, Vector2 a, Vector2 b, out Vector2 intersection) //edited
+        //    var direction = dir;
+        //    var pSpellDir = direction.Perpendicular();
+        //    //var spellRadius = spell.radius;
+        //    var spellPos = spell.currentSpellPosition - direction * myBoundingRadius; //leave some space at back of spell
+        //    var endPos = spell.GetSpellEndPosition() + direction * myBoundingRadius; //leave some space at the front of spell
+
+        //    var startRightPos = spellPos + pSpellDir * (spellRadius + myBoundingRadius);
+        //    var startLeftPos = spellPos - pSpellDir * (spellRadius + myBoundingRadius);
+        //    var endRightPos = endPos + pSpellDir * (spellRadius + myBoundingRadius);
+        //    var endLeftPos = endPos - pSpellDir * (spellRadius + myBoundingRadius);
+
+        //    List<Vector2Extensions.IntersectionResult> intersects = new List<Vector2Extensions.IntersectionResult>();
+        //    Vector2 heroPos = ObjectManager.GetLocalPlayer().ServerPosition.To2D();
+
+        //    intersects.Add(a.Intersection(b, startRightPos, startLeftPos));
+        //    intersects.Add(a.Intersection(b, endRightPos, endLeftPos));
+        //    intersects.Add(a.Intersection(b, startRightPos, endRightPos));
+        //    intersects.Add(a.Intersection(b, startLeftPos, endLeftPos));
+
+        //    var sortedIntersects = intersects.Where(i => i.Intersects).OrderBy(i => i.Point.Distance(heroPos)); //Get first intersection
+
+        //    if (sortedIntersects.Count() > 0)
+        //    {
+        //        intersection = sortedIntersects.First().Point;
+        //        return true;
+        //    }
+
+        //    intersection = Vector2.Zero;
+        //    return false;
+        //}
 
         //public static Size GetTextExtent(string text)
         //{
@@ -547,10 +578,7 @@ namespace zzzz
         //    Font font = new Font(FontFamily.GenericSansSerif, 10);
         //    g.MeasureString(text, font);
         //}
-
-
     }
-
 
 
     /// <summary>
@@ -558,6 +586,23 @@ namespace zzzz
     /// </summary>
     public class LastCastedSpellEntry
     {
+        #region Constructors and Destructors
+
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="LastCastedSpellEntry" /> class.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="tick">The tick.</param>
+        /// <param name="target">The target.</param>
+        public LastCastedSpellEntry(string name, int tick, Obj_AI_Base target)
+        {
+            Name = name;
+            Tick = tick;
+            Target = target;
+        }
+
+        #endregion
+
         #region Fields
 
         /// <summary>
@@ -576,23 +621,6 @@ namespace zzzz
         public int Tick;
 
         #endregion
-
-        #region Constructors and Destructors
-
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="LastCastedSpellEntry" /> class.
-        /// </summary>
-        /// <param name="name">The name.</param>
-        /// <param name="tick">The tick.</param>
-        /// <param name="target">The target.</param>
-        public LastCastedSpellEntry(string name, int tick, Obj_AI_Base target)
-        {
-            this.Name = name;
-            this.Tick = tick;
-            this.Target = target;
-        }
-
-        #endregion
     }
 
     /// <summary>
@@ -600,6 +628,23 @@ namespace zzzz
     /// </summary>
     public class LastCastPacketSentEntry
     {
+        #region Constructors and Destructors
+
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="LastCastPacketSentEntry" /> class.
+        /// </summary>
+        /// <param name="slot">The slot.</param>
+        /// <param name="tick">The tick.</param>
+        /// <param name="targetNetworkId">The target network identifier.</param>
+        public LastCastPacketSentEntry(SpellSlot slot, int tick, int targetNetworkId)
+        {
+            Slot = slot;
+            Tick = tick;
+            TargetNetworkId = targetNetworkId;
+        }
+
+        #endregion
+
         #region Fields
 
         /// <summary>
@@ -618,23 +663,6 @@ namespace zzzz
         public int Tick;
 
         #endregion
-
-        #region Constructors and Destructors
-
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="LastCastPacketSentEntry" /> class.
-        /// </summary>
-        /// <param name="slot">The slot.</param>
-        /// <param name="tick">The tick.</param>
-        /// <param name="targetNetworkId">The target network identifier.</param>
-        public LastCastPacketSentEntry(SpellSlot slot, int tick, int targetNetworkId)
-        {
-            this.Slot = slot;
-            this.Tick = tick;
-            this.TargetNetworkId = targetNetworkId;
-        }
-
-        #endregion
     }
 
     /// <summary>
@@ -642,6 +670,19 @@ namespace zzzz
     /// </summary>
     public static class LastCastedSpell
     {
+        #region Constructors and Destructors
+
+        /// <summary>
+        ///     Initializes static members of the <see cref="LastCastedSpell" /> class.
+        /// </summary>
+        static LastCastedSpell()
+        {
+            Obj_AI_Base.OnProcessSpellCast += OnProcessSpellCast;
+            SpellBook.OnCastSpell += OnCastSpell;
+        }
+
+        #endregion
+
         #region Static Fields
 
         /// <summary>
@@ -654,19 +695,6 @@ namespace zzzz
         /// </summary>
         internal static readonly Dictionary<int, LastCastedSpellEntry> CastedSpells =
             new Dictionary<int, LastCastedSpellEntry>();
-
-        #endregion
-
-        #region Constructors and Destructors
-
-        /// <summary>
-        ///     Initializes static members of the <see cref="LastCastedSpell" /> class.
-        /// </summary>
-        static LastCastedSpell()
-        {
-            Obj_AI_Base.OnProcessSpellCast += OnProcessSpellCast;
-            SpellBook.OnCastSpell += OnCastSpell;
-        }
 
         #endregion
 
@@ -727,15 +755,12 @@ namespace zzzz
         {
             if (sender is Obj_AI_Hero)
             {
-                var entry = new LastCastedSpellEntry(args.SpellData.Name, Game.TickCount, ObjectManager.GetLocalPlayer());
+                var entry = new LastCastedSpellEntry(args.SpellData.Name, Game.TickCount,
+                    ObjectManager.GetLocalPlayer());
                 if (CastedSpells.ContainsKey(sender.NetworkId))
-                {
                     CastedSpells[sender.NetworkId] = entry;
-                }
                 else
-                {
                     CastedSpells.Add(sender.NetworkId, entry);
-                }
             }
         }
 
@@ -744,19 +769,17 @@ namespace zzzz
         /// </summary>
         /// <param name="spellbook">The spellbook.</param>
         /// <param name="args">The <see cref="SpellbookCastSpellEventArgs" /> instance containing the event data.</param>
-        static void OnCastSpell(Obj_AI_Base sender, SpellBookCastSpellEventArgs spellBookCastSpellEventArgs)
+        private static void OnCastSpell(Obj_AI_Base sender, SpellBookCastSpellEventArgs spellBookCastSpellEventArgs)
         {
             if (sender.IsMe)
-            {
                 LastCastPacketSent = new LastCastPacketSentEntry(
                     spellBookCastSpellEventArgs.Slot,
                     Game.TickCount,
-                    (spellBookCastSpellEventArgs.Target is Obj_AI_Base) ? spellBookCastSpellEventArgs.Target.NetworkId : 0);
-            }
+                    spellBookCastSpellEventArgs.Target is Obj_AI_Base
+                        ? spellBookCastSpellEventArgs.Target.NetworkId
+                        : 0);
         }
 
         #endregion
     }
-
-
 }

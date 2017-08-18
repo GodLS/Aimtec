@@ -1,47 +1,30 @@
-﻿using System;
+﻿using Aimtec;
 using Aimtec.SDK.Extensions;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
 //using SharpDX;
 
 namespace zzzz
 {
-    class SpecialEvadeSpell
+    internal class SpecialEvadeSpell
     {
-        private static Obj_AI_Hero myHero { get { return ObjectManager.GetLocalPlayer(); } }
+        private static Obj_AI_Hero myHero => ObjectManager.GetLocalPlayer();
 
         public static void LoadSpecialSpell(EvadeSpellData spellData)
         {
             if (spellData.spellName == "EkkoEAttack")
-            {
                 spellData.useSpellFunc = UseEkkoE2;
-            }
 
             if (spellData.spellName == "EkkoR")
-            {
                 spellData.useSpellFunc = UseEkkoR;
-            }
 
             if (spellData.spellName == "EliseSpiderEInitial")
-            {
                 spellData.useSpellFunc = UseRappel;
-            }
 
             if (spellData.spellName == "Pounce")
-            {
                 spellData.useSpellFunc = UsePounce;
-            }
 
             if (spellData.spellName == "RivenTriCleave")
-            {
                 spellData.useSpellFunc = UseBrokenWings;
-            }
         }
 
         public static bool UseRappel(EvadeSpellData evadeSpell, bool process = true)
@@ -53,10 +36,8 @@ namespace zzzz
             }
 
             if (myHero.UnitSkinName == "Elise")
-            {
                 if (myHero.SpellBook.CanUseSpell(SpellSlot.R))
                     myHero.SpellBook.CastSpell(SpellSlot.R);
-            }
 
             return false;
         }
@@ -109,19 +90,16 @@ namespace zzzz
         public static bool UseEkkoR(EvadeSpellData evadeSpell, bool process = true)
         {
             foreach (var obj in ObjectManager.Get<Obj_AI_Minion>())
-            {
                 if (obj != null && obj.IsValid && !obj.IsDead && obj.Name == "Ekko" && obj.IsAlly)
                 {
-                    Vector2 blinkPos = obj.ServerPosition.To2D();
+                    var blinkPos = obj.ServerPosition.To2D();
                     if (!blinkPos.CheckDangerousPos(10))
                     {
                         EvadeSpell.CastEvadeSpell(() => EvadeCommand.CastSpell(evadeSpell), process);
                         //DelayAction.Add(50, () => myHero.IssueOrder(OrderType.MoveTo, posInfo.position.To3D()));
                         return true;
                     }
-
                 }
-            }
 
             return false;
         }

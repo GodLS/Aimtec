@@ -1,13 +1,4 @@
-﻿using System;
-using Aimtec.SDK.Extensions;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
-using Aimtec.SDK.Damage;
+﻿using Aimtec;
 
 //using SharpDX;
 
@@ -19,7 +10,7 @@ namespace zzzz
     {
         Position,
         Target,
-        Self,
+        Self
     }
 
     public enum SpellTargets
@@ -30,7 +21,7 @@ namespace zzzz
         AllyChampions,
         EnemyChampions,
 
-        Targetables,
+        Targetables
     }
 
     public enum EvadeType
@@ -41,38 +32,37 @@ namespace zzzz
         MovementSpeedBuff,
         Shield,
         SpellShield,
-        WindWall,
+        WindWall
     }
 
     public class EvadeSpellData
     {
+        public bool behindTarget = false;
+        public CastType castType = CastType.Position;
         public string charName;
-        public SpellSlot spellKey = SpellSlot.Q;
-        public int dangerlevel = 1;
-        public string spellName;
-        public string name;
         public bool checkSpellName = false;
-        public float spellDelay = 250;
+        public int dangerlevel = 1;
+        public EvadeType evadeType;
+        public bool fixedRange = false;
+        public bool infrontTarget = false;
+        public bool isItem = false;
+        public bool isReversed = false;
+        public bool isSpecial = false;
+        public bool isSummonerSpell = false;
+        public uint itemID;
+        public string name;
         public float range;
         public float speed = 0;
-        public float[] speedArray = { 0f, 0f, 0f, 0f, 0f };
-        public bool fixedRange = false;
-        public EvadeType evadeType;
-        public bool isReversed = false;
-        public bool behindTarget = false;
-        public bool infrontTarget = false;
-        public bool isSummonerSpell = false;
-        public bool isItem = false;
-        public uint itemID;
-        public CastType castType = CastType.Position;
+        public float[] speedArray = {0f, 0f, 0f, 0f, 0f};
+        public float spellDelay = 250;
+        public SpellSlot spellKey = SpellSlot.Q;
+        public string spellName;
         public SpellTargets[] spellTargets = { };
-        public UseSpellFunc useSpellFunc = null;
-        public bool isSpecial = false;
         public bool untargetable = false;
+        public UseSpellFunc useSpellFunc = null;
 
         public EvadeSpellData()
         {
-
         }
 
         public EvadeSpellData(
@@ -81,7 +71,7 @@ namespace zzzz
             SpellSlot spellKey,
             EvadeType evadeType,
             int dangerlevel
-            )
+        )
         {
             this.charName = charName;
             this.name = name;

@@ -1,20 +1,12 @@
-﻿using System;
-using Aimtec.SDK.Extensions;
-using System.Linq;
+﻿using System.Linq;
 using Aimtec;
+using Aimtec.SDK.Extensions;
 using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
 
 namespace zzzz.SpecialSpells
 {
-    class Taric : ChampionPlugin
+    internal class Taric : ChampionPlugin
     {
-        static Taric()
-        {
-            // taric E rework
-            // todo: fix for multiple tarics on same team (one for all)
-        }
-
         public void LoadSpecialSpell(SpellData spellData)
         {
             if (spellData.spellName == "TaricE")
@@ -33,34 +25,32 @@ namespace zzzz.SpecialSpells
             if (hero != null && hero.CheckTeam())
             {
                 foreach (var spell in SpellDetector.detectedSpells.Where(x => x.Value.heroID == hero.NetworkId))
-                {
                     if (spell.Value.info.spellName.ToLower() == "tarice")
                     {
                         spell.Value.startPos = hero.ServerPosition.To2D();
-                        spell.Value.endPos = hero.ServerPosition.To2D() + spell.Value.direction * spell.Value.info.range;
+                        spell.Value.endPos = hero.ServerPosition.To2D() +
+                                             spell.Value.direction * spell.Value.info.range;
                     }
-                }
 
                 var partner = GameObjects.Heroes.FirstOrDefault(x => x.HasBuff("taricwleashactive"));
                 if (partner != null && partner.CheckTeam())
-                {
                     foreach (var spell in SpellDetector.detectedSpells.Where(x => x.Value.heroID == partner.NetworkId))
-                    {
                         if (spell.Value.info.spellName.ToLower() == "tarice")
                         {
                             spell.Value.startPos = partner.ServerPosition.To2D();
-                            spell.Value.endPos = partner.ServerPosition.To2D() + spell.Value.direction * spell.Value.info.range;
+                            spell.Value.endPos = partner.ServerPosition.To2D() +
+                                                 spell.Value.direction * spell.Value.info.range;
                         }
-                    }
-                }
             }
         }
 
-        private void SpellDetector_OnProcessSpecialSpell(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args, SpellData spellData, SpecialSpellEventArgs specialSpellArgs)
+        private void SpellDetector_OnProcessSpecialSpell(Obj_AI_Base hero, Obj_AI_BaseMissileClientDataEventArgs args,
+            SpellData spellData, SpecialSpellEventArgs specialSpellArgs)
         {
             if (spellData.spellName == "TaricE")
             {
-                var partner = GameObjects.Heroes.FirstOrDefault(x => x.ChampionName != "Taric" && x.HasBuff("taricwleashactive"));
+                var partner =
+                    GameObjects.Heroes.FirstOrDefault(x => x.ChampionName != "Taric" && x.HasBuff("taricwleashactive"));
                 if (partner != null && partner.CheckTeam())
                 {
                     var start = partner.ServerPosition.To2D();

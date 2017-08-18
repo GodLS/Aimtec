@@ -1,24 +1,13 @@
 ﻿using System;
-using Aimtec.SDK.Extensions;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using Aimtec;
-using Aimtec.SDK.Util.Cache;
-using Aimtec.SDK;
+using Aimtec.SDK.Extensions;
+
 //using SharpDX;
 
 namespace zzzz.SpecialSpells
 {
-    class Jinx : ChampionPlugin
+    internal class Jinx : ChampionPlugin
     {
-        static Jinx()
-        {
-
-        }
-
         public void LoadSpecialSpell(SpellData spellData)
         {
             /*if (spellData.spellName == "JinxWMissile")
@@ -31,7 +20,8 @@ namespace zzzz.SpecialSpells
             }*/
         }
 
-        private static void OnCreateObj_JinxWMissile(GameObject obj, EventArgs args, Obj_AI_Hero hero, SpellData spellData)
+        private static void OnCreateObj_JinxWMissile(GameObject obj, EventArgs args, Obj_AI_Hero hero,
+            SpellData spellData)
         {
             if (hero != null && !hero.IsVisible
                 && obj.IsEnemy && obj.Name.Contains("Jinx") && obj.Name.Contains("W_Cas"))
