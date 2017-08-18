@@ -94,6 +94,7 @@ namespace zzzz
                 new[] {"Undodgeable", "Activation Time", "Always"}, GetDefaultSpellMode(spell)));
 
             Evade.evadeSpellMenu.Add(newSpellMenu);
+            ObjectCache.menuCache.AddMenuToCache(newSpellMenu);
 
             return newSpellMenu;
         }
