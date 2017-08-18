@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using Aimtec;
 using Aimtec.SDK.Events;
@@ -470,8 +472,10 @@ namespace zzzz
 
         private SpellSlot GetSummonerSlot(string spellName)
         {
-            if (myHero.SpellBook.GetSpell(SpellSlot.Summoner1).SpellData.Name == spellName)
+            if (myHero.SpellBook.GetSpell(SpellSlot.Summoner1).Name == spellName)
+            {
                 return SpellSlot.Summoner1;
+            }
             if (myHero.SpellBook.GetSpell(SpellSlot.Summoner2).SpellData.Name == spellName)
                 return SpellSlot.Summoner2;
 
@@ -488,6 +492,7 @@ namespace zzzz
                     var spellKey = GetSummonerSlot(spell.spellName);
                     if (spellKey == SpellSlot.Unknown)
                         continue;
+
                     spell.spellKey = spellKey;
                 }
 

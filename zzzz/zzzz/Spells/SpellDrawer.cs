@@ -52,7 +52,7 @@ namespace zzzz
             undodgeableDangerMenu.Add(new MenuComponent("Color", "Color").SetValue(new Circle(true, Color.FromArgb(255, 255, 0, 0))));*/
 
             Evade.drawMenu.Add(dangerMenu);
-
+            ObjectCache.menuCache.AddMenuToCache(Evade.drawMenu);
             menu.Add(Evade.drawMenu);
         }
 
