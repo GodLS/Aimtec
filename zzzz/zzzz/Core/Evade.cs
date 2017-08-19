@@ -567,15 +567,15 @@ namespace zzzz
             if (!hero.IsMe)
                 return;
 
+            if (!Situation.ShouldDodge())
+                return;
+
             var limitDelay = ObjectCache.menuCache.cache["TickLimiter"].As<MenuSlider>(); //Tick limiter                
             if (EvadeUtils.TickCount - lastTickCount > limitDelay.Value)
             {
                 args.ProcessEvent = false;
                 return;
             }
-
-            if (!Situation.ShouldDodge())
-                return;
 
 
             //if (args.OrderType == OrderType.MoveTo)
