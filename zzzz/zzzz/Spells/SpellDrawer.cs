@@ -121,7 +121,7 @@ namespace zzzz
         private void DrawEvadeStatus()
         {
             // fix
-            //if (ObjectCache.menuCache.cache["ShowStatus"].As<MenuBool>().Enabled)
+            if (ObjectCache.menuCache.cache["ShowStatus"].As<MenuBool>().Enabled)
             {
                 Vector2 heroPos;
                 Render.WorldToScreen(ObjectManager.GetLocalPlayer().Position, out heroPos);
@@ -175,23 +175,23 @@ namespace zzzz
         private void Render_OnPresent()
         {
             // fix just uncomment it all
-            //if (ObjectCache.menuCache.cache["DrawEvadePosition"].As<MenuBool>().Enabled)
-            //{
-            //    //Render.Circle.DrawCircle(myHero.Position.ExtendDir(dir, 500), 65, Color.Red, 10);
+            if (ObjectCache.menuCache.cache["DrawEvadePosition"].As<MenuBool>().Enabled)
+            {
+                //Render.Circle.DrawCircle(myHero.Position.ExtendDir(dir, 500), 65, Color.Red, 10);
 
-            //    /*foreach (var point in myHero.Path)
-            //    {
-            //        Render.Circle.DrawCircle(point, 65, Color.Red, 10);
-            //    }*/
+                /*foreach (var point in myHero.Path)
+                {
+                    Render.Circle.DrawCircle(point, 65, Color.Red, 10);
+                }*/
 
-            //    if (Evade.lastPosInfo != null)
-            //    {
-            //        var pos = Evade.lastPosInfo.position; //Evade.lastEvadeCommand.targetPosition;
-            //        Vector2 screenPos;
-            //        Render.WorldToScreen(new Vector3(pos.X, pos.Y, myHero.Position.Z), out screenPos);
-            //        Render.Circle(screenPos.To3D(), 65, 10, Color.Red);
-            //    }
-            //}
+                if (Evade.lastPosInfo != null)
+                {
+                    var pos = Evade.lastPosInfo.position; //Evade.lastEvadeCommand.targetPosition;
+                    Vector2 screenPos;
+                    Render.WorldToScreen(new Vector3(pos.X, pos.Y, myHero.Position.Z), out screenPos);
+                    Render.Circle(screenPos.To3D(), 65, 10, Color.Red);
+                }
+            }
 
             DrawEvadeStatus();
 
